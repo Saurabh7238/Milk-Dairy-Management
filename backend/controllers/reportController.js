@@ -30,6 +30,30 @@ const getDashboard = async (req, res, next) => {
       },
     });
 
+    const weeklyEntries = await MilkEntry.find({ userId: req.user.id, 
+      date: {
+        $gte: dayjs().subtract(6, 'day').startOf('day').toDate(),
+        $lte: dayjs().endOf('day').toDate(),
+      },
+    }).sort({ date: 1 });
+
+    const monthlySeries = Array.from({ length: 4 }, (_, index) => {
+      const start = dayjs().startOf('month').add(index * 7, 'day');
+      const end = start.add(6, 'day');
+      const weekEntries = monthlyEntries.filter((entry) => {
+        const d = dayjs(entry.date);
+        return d.isBetween(start, end, 'day', '[]');
+      });
+      const total = weekEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) + Number(item.buffaloTotal || 0), 0);
+      return total;
+    });
+
+    const weeklySeries = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label, index) => {
+      const day = dayjs().startOf('week').add(index, 'day');
+      const matchingEntries = weeklyEntries.filter((entry) => dayjs(entry.date).isSame(day, 'day'));
+      return matchingEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) + Number(item.buffaloTotal || 0), 0);
+    });
+
     const cowToday = todayEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0), 0);
     const buffaloToday = todayEntries.reduce((sum, item) => sum + Number(item.buffaloTotal || 0), 0);
     const totalToday = cowToday + buffaloToday;
@@ -53,6 +77,10 @@ const getDashboard = async (req, res, next) => {
         curdIncome,
       },
       monthlyRates: rates || null,
+      charts: {
+        monthly: monthlySeries,
+        weekly: weeklySeries,
+      },
     });
   } catch (error) {
     next(error);

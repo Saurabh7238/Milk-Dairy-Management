@@ -56,15 +56,14 @@ export default function DashboardPage() {
   const monthlyLineData = {
     labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
     datasets: [
-      { label: 'Milk (kg)', data: [120, 140, 135, 170], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)' },
+      { label: 'Milk (kg)', data: dashboard?.charts?.monthly || [0, 0, 0, 0], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)' },
     ],
   };
 
   const barData = {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
-      { label: 'Cow', data: [15, 12, 18, 17, 20, 16, 19], backgroundColor: '#38bdf8' },
-      { label: 'Buffalo', data: [10, 9, 12, 15, 14, 13, 18], backgroundColor: '#10b981' },
+      { label: 'Milk', data: dashboard?.charts?.weekly || [0, 0, 0, 0, 0, 0, 0], backgroundColor: '#38bdf8' },
     ],
   };
 
