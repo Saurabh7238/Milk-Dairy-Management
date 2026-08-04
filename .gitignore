@@ -2,3 +2,7 @@ backend/node_modules/
 frontend/node_modules/
 dist/
 .env
+.env.local
+.env.*
+*.env
+secrets/
