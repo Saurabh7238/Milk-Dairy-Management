@@ -55,7 +55,7 @@ const connectDB = async () => {
 
 const ensureIndexes = async () => {
   try {
-    await ensureCollectionIndex('monthlyrates', 'month_1_year_1', { userId: 1, month: 1, year: 1 }, { unique: true }, 'monthly rates');
+    await ensureCollectionIndex('monthlyrates', 'month_1_year_1', { userId: 1, buyerId: 1, month: 1, year: 1 }, { unique: true }, 'monthly rates');
     await ensureCollectionIndex('milkentries', 'date_1', { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'milk entries');
     await ensureCollectionIndex('curdentries', 'date_1', { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'curd entries');
   } catch (err) {

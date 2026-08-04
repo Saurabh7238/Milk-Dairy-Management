@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const MilkEntry = require('../models/MilkEntry');
 const CurdEntry = require('../models/CurdEntry');
 const MonthlyRate = require('../models/MonthlyRate');
@@ -100,22 +101,31 @@ const getDashboard = async (req, res, next) => {
 
 const getMonthlyReport = async (req, res, next) => {
   try {
-    const { month, year } = req.query;
+    const { month, year, buyerId } = req.query;
     const monthNumber = Number(month);
     const yearNumber = Number(year);
 
     const monthStart = dayjs(`${yearNumber}-${monthNumber}-01`).startOf('month').toDate();
     const monthEnd = dayjs(`${yearNumber}-${monthNumber}-01`).endOf('month').toDate();
 
-    const milkEntries = await MilkEntry.find({ userId: req.user.id, 
-      date: { $gte: monthStart, $lte: monthEnd },
-    }).sort({ date: 1 });
+    const milkQuery = { userId: req.user.id, date: { $gte: monthStart, $lte: monthEnd } };
+    const curdQuery = { userId: req.user.id, date: { $gte: monthStart, $lte: monthEnd } };
 
-    const curdEntries = await CurdEntry.find({ userId: req.user.id, 
-      date: { $gte: monthStart, $lte: monthEnd },
-    });
+    if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
+      milkQuery.buyerId = new mongoose.Types.ObjectId(buyerId);
+      curdQuery.buyerId = new mongoose.Types.ObjectId(buyerId);
+    }
 
-    const monthlyRate = await MonthlyRate.findOne({ userId: req.user.id, month: monthNumber, year: yearNumber });
+    const milkEntries = await MilkEntry.find(milkQuery).sort({ date: 1 });
+    const curdEntries = await CurdEntry.find(curdQuery);
+
+    let monthlyRate = null;
+    if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
+      monthlyRate = await MonthlyRate.findOne({ userId: req.user.id, buyerId: new mongoose.Types.ObjectId(buyerId), month: monthNumber, year: yearNumber });
+    }
+    if (!monthlyRate) {
+      monthlyRate = await MonthlyRate.findOne({ userId: req.user.id, buyerId: null, month: monthNumber, year: yearNumber });
+    }
 
     const cowMilkTotal = milkEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0), 0);
     const buffaloMilkTotal = milkEntries.reduce((sum, item) => sum + Number(item.buffaloTotal || 0), 0);
@@ -144,11 +154,18 @@ const getMonthlyReport = async (req, res, next) => {
 
 const createMonthlyRate = async (req, res, next) => {
   try {
-    const { month, year, cowRate, buffaloRate } = req.body;
+    const { month, year, cowRate, buffaloRate, buyerId } = req.body;
+    const filter = { userId: req.user.id, month: Number(month), year: Number(year) };
+
+    if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
+      filter.buyerId = new mongoose.Types.ObjectId(buyerId);
+    } else {
+      filter.buyerId = null;
+    }
 
     const rate = await MonthlyRate.findOneAndUpdate(
-      { userId: req.user.id, month, year },
-      { $set: { userId: req.user.id, month, year, cowRate, buffaloRate } },
+      filter,
+      { $set: { userId: req.user.id, buyerId: filter.buyerId, month: Number(month), year: Number(year), cowRate, buffaloRate } },
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );
 
@@ -156,8 +173,15 @@ const createMonthlyRate = async (req, res, next) => {
   } catch (error) {
     if (error.code === 11000) {
       try {
+        const filter = { userId: req.user.id, month: Number(req.body.month), year: Number(req.body.year) };
+        if (req.body.buyerId && mongoose.Types.ObjectId.isValid(req.body.buyerId)) {
+          filter.buyerId = new mongoose.Types.ObjectId(req.body.buyerId);
+        } else {
+          filter.buyerId = null;
+        }
+
         const rate = await MonthlyRate.findOneAndUpdate(
-          { userId: req.user.id, month: req.body.month, year: req.body.year },
+          filter,
           { $set: { cowRate: req.body.cowRate, buffaloRate: req.body.buffaloRate } },
           { new: true, runValidators: true },
         );
@@ -172,7 +196,16 @@ const createMonthlyRate = async (req, res, next) => {
 
 const getMonthlyRates = async (req, res, next) => {
   try {
-    const rates = await MonthlyRate.find({ userId: req.user.id }).sort({ year: -1, month: -1 });
+    const { buyerId } = req.query;
+    const filter = { userId: req.user.id };
+
+    if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
+      filter.buyerId = new mongoose.Types.ObjectId(buyerId);
+    } else {
+      filter.buyerId = null;
+    }
+
+    const rates = await MonthlyRate.find(filter).sort({ year: -1, month: -1 });
     res.json(rates);
   } catch (error) {
     next(error);

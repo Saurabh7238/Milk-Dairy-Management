@@ -27,10 +27,15 @@ const monthlyRateSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Buyer',
+      default: null,
+    },
   },
   { timestamps: true },
 );
 
-monthlyRateSchema.index({ userId: 1, month: 1, year: 1 }, { unique: true });
+monthlyRateSchema.index({ userId: 1, buyerId: 1, month: 1, year: 1 }, { unique: true });
 
 module.exports = mongoose.model('MonthlyRate', monthlyRateSchema);

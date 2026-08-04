@@ -12,10 +12,21 @@ export default function ReportPage() {
   const [rates, setRates] = useState(null);
   const [cowRateInput, setCowRateInput] = useState('');
   const [buffaloRateInput, setBuffaloRateInput] = useState('');
+  const [buyers, setBuyers] = useState([]);
+  const [buyerId, setBuyerId] = useState('');
+
+  const fetchBuyers = async () => {
+    try {
+      const { data } = await api.get('/buyers');
+      setBuyers(data || []);
+    } catch (error) {
+      console.error('Unable to load buyers', error);
+    }
+  };
 
   const fetchReport = async () => {
     try {
-      const { data } = await api.get('/monthly-report', { params: { month, year } });
+      const { data } = await api.get('/monthly-report', { params: { month, year, buyerId: buyerId || undefined } });
       setReport(data);
       setCowRateInput(data.cowRate || '');
       setBuffaloRateInput(data.buffaloRate || '');
@@ -25,25 +36,37 @@ export default function ReportPage() {
   };
 
   const fetchRates = async () => {
-    const { data } = await api.get('/monthly-rate');
-    const matchedRate = data.find((r) => r.month === month && r.year === year);
-    setRates(matchedRate || null);
-    if (matchedRate) {
-      setCowRateInput(matchedRate.cowRate);
-      setBuffaloRateInput(matchedRate.buffaloRate);
+    try {
+      const { data } = await api.get('/monthly-rate', { params: { buyerId: buyerId || undefined } });
+      let matchedRate = data.find((r) => r.month === month && r.year === year && String(r.buyerId || '') === String(buyerId || ''));
+      if (!matchedRate && buyerId) {
+        matchedRate = data.find((r) => r.month === month && r.year === year && (!r.buyerId || String(r.buyerId) === ''));
+      }
+      setRates(matchedRate || null);
+      if (matchedRate) {
+        setCowRateInput(matchedRate.cowRate);
+        setBuffaloRateInput(matchedRate.buffaloRate);
+      }
+    } catch (error) {
+      console.error('Unable to load rates', error);
     }
   };
 
   useEffect(() => {
+    fetchBuyers();
+  }, []);
+
+  useEffect(() => {
     fetchReport();
     fetchRates();
-  }, [month, year]);
+  }, [month, year, buyerId]);
 
   const saveMonthlyRate = async () => {
     try {
       await api.post('/monthly-rate', {
         month,
         year,
+        buyerId: buyerId || undefined,
         cowRate: Number(cowRateInput || 0),
         buffaloRate: Number(buffaloRateInput || 0),
       });
@@ -88,11 +111,17 @@ export default function ReportPage() {
     <div className="space-y-6">
       <div className="rounded-3xl border border-white/40 bg-white/60 p-5 shadow-lg">
         <h2 className="mb-4 text-xl font-bold text-slate-900">Monthly Report</h2>
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="rounded-2xl border px-4 py-3">
             {[...Array(12)].map((_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}
           </select>
           <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="rounded-2xl border px-4 py-3" />
+          <select value={buyerId} onChange={(e) => setBuyerId(e.target.value)} className="rounded-2xl border px-4 py-3">
+            <option value="">All Buyers</option>
+            {buyers.map((buyer) => (
+              <option key={buyer._id} value={buyer._id}>{buyer.name}</option>
+            ))}
+          </select>
           <div className="rounded-2xl bg-slate-50 p-3 text-sm">
             <div>Cow cost: ₹<input type="number" min="0" value={cowRateInput} onChange={(e) => setCowRateInput(e.target.value)} className="mt-1 w-full rounded-xl border px-2 py-1" /></div>
           </div>
