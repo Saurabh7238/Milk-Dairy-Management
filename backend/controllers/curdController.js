@@ -18,8 +18,8 @@ const createCurdEntry = async (req, res) => {
     const normalizedRate = Number(rate || 0);
 
     const entry = await CurdEntry.findOneAndUpdate(
-      { date: entryDate.toDate(), userId: req.user.id },
-      { date: entryDate.toDate(), userId: req.user.id, quantity: normalizedQuantity, rate: normalizedRate, amount: normalizedQuantity * normalizedRate, remarks },
+      { date: entryDate.toDate(), userId: req.user.id, buyerId: req.body.buyerId },
+      { date: entryDate.toDate(), userId: req.user.id, buyerId: req.body.buyerId, quantity: normalizedQuantity, rate: normalizedRate, amount: normalizedQuantity * normalizedRate, remarks },
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );
 
@@ -31,7 +31,9 @@ const createCurdEntry = async (req, res) => {
 
 const getCurdEntries = async (req, res) => {
   try {
-    const entries = await CurdEntry.find({ userId: req.user.id }).sort({ date: 1 });
+    const filter = { userId: req.user.id };
+    if (req.query.buyerId) filter.buyerId = req.query.buyerId;
+    const entries = await CurdEntry.find(filter).populate('buyerId').sort({ date: 1 });
     return res.json(entries);
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to fetch curd entries' });
@@ -47,6 +49,7 @@ const updateCurdEntry = async (req, res) => {
       { _id: req.params.id, userId: req.user.id },
       {
         ...req.body,
+        buyerId: req.body.buyerId,
         quantity: normalizedQuantity,
         rate: normalizedRate,
         amount: normalizedQuantity * normalizedRate,

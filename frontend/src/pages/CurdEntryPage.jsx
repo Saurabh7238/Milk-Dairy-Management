@@ -4,6 +4,7 @@ import api from '../services/api';
 
 const initialForm = {
   date: new Date().toISOString().slice(0, 10),
+  buyerId: '',
   quantity: '',
   rate: '',
   remarks: '',
@@ -12,6 +13,7 @@ const initialForm = {
 export default function CurdEntryPage() {
   const [form, setForm] = useState(initialForm);
   const [entries, setEntries] = useState([]);
+  const [buyers, setBuyers] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
   const amount = Number(form.quantity || 0) * Number(form.rate || 0);
@@ -21,6 +23,11 @@ export default function CurdEntryPage() {
     setEntries(data);
   };
 
+  const fetchBuyers = async () => {
+    const { data } = await api.get('/buyers');
+    setBuyers(data);
+  };
+
   const resetForm = () => {
     setForm(initialForm);
     setEditingId(null);
@@ -28,12 +35,14 @@ export default function CurdEntryPage() {
 
   useEffect(() => {
     fetchEntries();
+    fetchBuyers();
   }, []);
 
   const handleEdit = (entry) => {
     setEditingId(entry._id);
     setForm({
       date: new Date(entry.date).toISOString().slice(0, 10),
+      buyerId: entry.buyerId?._id || '',
       quantity: entry.quantity,
       rate: entry.rate,
       remarks: entry.remarks || '',
@@ -74,6 +83,14 @@ export default function CurdEntryPage() {
       <div className="rounded-3xl border border-white/40 bg-white/60 p-5 shadow-lg">
         <h2 className="mb-4 text-xl font-bold text-slate-900">{editingId ? 'Edit Curd Entry' : 'Curd Entry'}</h2>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+          <label><span className="mb-1 block text-sm font-semibold">Buyer</span>
+            <select name="buyerId" value={form.buyerId} onChange={(e) => setForm({ ...form, buyerId: e.target.value })} className="w-full rounded-2xl border px-4 py-3" required>
+              <option value="">Select buyer</option>
+              {buyers.map((buyer) => (
+                <option key={buyer._id} value={buyer._id}>{buyer.name}</option>
+              ))}
+            </select>
+          </label>
           <label><span className="mb-1 block text-sm font-semibold">Date</span><input type="date" name="date" className="w-full rounded-2xl border px-4 py-3" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Curd Quantity (kg)</span><input type="number" min="0" name="quantity" className="w-full rounded-2xl border px-4 py-3" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Rate per Kg</span><input type="number" min="0" name="rate" className="w-full rounded-2xl border px-4 py-3" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} required /></label>

@@ -1,16 +1,16 @@
 import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaClipboardList, FaCheese, FaFileInvoiceDollar, FaCalendarAlt, FaCog, FaSignOutAlt, FaUsers } from 'react-icons/fa';
+import { FiHome, FiFileText, FiCoffee, FiDollarSign, FiCalendar, FiSettings, FiLogOut, FiUsers } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
 const links = [
-  { to: '/', label: 'Dashboard', icon: FaTachometerAlt },
-  { to: '/milk', label: 'Milk Entry', icon: FaClipboardList },
-  { to: '/curd', label: 'Curd Entry', icon: FaCheese },
-  { to: '/report', label: 'Monthly Report', icon: FaFileInvoiceDollar },
-  { to: '/buyers', label: 'Buyers', icon: FaUsers },
-  { to: '/sales', label: 'Sell Milk', icon: FaClipboardList },
-  { to: '/calendar', label: 'Calendar', icon: FaCalendarAlt },
-  { to: '/settings', label: 'Settings', icon: FaCog },
+  { to: '/', label: 'Dashboard', icon: FiHome },
+  { to: '/milk', label: 'Milk Entry', icon: FiCoffee },
+  { to: '/curd', label: 'Curd Entry', icon: FiCoffee },
+  { to: '/report', label: 'Monthly Report', icon: FiFileText },
+  { to: '/buyers', label: 'Buyers', icon: FiUsers },
+  { to: '/sales', label: 'Sell Milk', icon: FiDollarSign },
+  { to: '/calendar', label: 'Calendar', icon: FiCalendar },
+  { to: '/settings', label: 'Settings', icon: FiSettings },
 ];
 
 export default function Sidebar() {
@@ -39,7 +39,7 @@ export default function Sidebar() {
         </nav>
       </div>
       <button onClick={logout} className="mt-4 flex items-center gap-3 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
-        <FaSignOutAlt />
+        <FiLogOut />
         Logout
       </button>
     </aside>

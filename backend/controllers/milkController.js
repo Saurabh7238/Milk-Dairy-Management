@@ -20,10 +20,11 @@ const createMilkEntry = async (req, res) => {
     const normalizedBuffaloEvening = Number(buffaloEvening || 0);
 
     const entry = await MilkEntry.findOneAndUpdate(
-      { date: entryDate.toDate(), userId: req.user.id },
+      { date: entryDate.toDate(), userId: req.user.id, buyerId: req.body.buyerId },
       {
         date: entryDate.toDate(),
         userId: req.user.id,
+        buyerId: req.body.buyerId,
         cowMorning: normalizedCowMorning,
         cowEvening: normalizedCowEvening,
         cowTotal: normalizedCowMorning + normalizedCowEvening,
@@ -43,7 +44,9 @@ const createMilkEntry = async (req, res) => {
 
 const getMilkEntries = async (req, res) => {
   try {
-    const entries = await MilkEntry.find({ userId: req.user.id }).sort({ date: 1 });
+    const filter = { userId: req.user.id };
+    if (req.query.buyerId) filter.buyerId = req.query.buyerId;
+    const entries = await MilkEntry.find(filter).populate('buyerId').sort({ date: 1 });
     return res.json(entries);
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to fetch milk entries' });
@@ -63,6 +66,7 @@ const updateMilkEntry = async (req, res) => {
       { _id: id, userId: req.user.id },
       {
         ...update,
+        buyerId: update.buyerId,
         cowMorning: normalizedCowMorning,
         cowEvening: normalizedCowEvening,
         cowTotal: normalizedCowMorning + normalizedCowEvening,

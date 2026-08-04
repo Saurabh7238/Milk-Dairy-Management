@@ -5,7 +5,6 @@ const milkEntrySchema = new mongoose.Schema(
     date: {
       type: Date,
       required: true,
-      unique: true,
     },
     cowMorning: {
       type: Number,
@@ -40,6 +39,11 @@ const milkEntrySchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Buyer',
+      required: true,
+    },
     remarks: {
       type: String,
       default: '',
@@ -47,5 +51,7 @@ const milkEntrySchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+milkEntrySchema.index({ date: 1, userId: 1, buyerId: 1 }, { unique: true });
 
 module.exports = mongoose.model('MilkEntry', milkEntrySchema);

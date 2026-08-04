@@ -5,7 +5,6 @@ const curdEntrySchema = new mongoose.Schema(
     date: {
       type: Date,
       required: true,
-      unique: true,
     },
     quantity: {
       type: Number,
@@ -26,6 +25,11 @@ const curdEntrySchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Buyer',
+      required: true,
+    },
     remarks: {
       type: String,
       default: '',
@@ -33,5 +37,7 @@ const curdEntrySchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+curdEntrySchema.index({ date: 1, userId: 1, buyerId: 1 }, { unique: true });
 
 module.exports = mongoose.model('CurdEntry', curdEntrySchema);

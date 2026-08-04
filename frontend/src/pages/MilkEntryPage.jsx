@@ -4,6 +4,7 @@ import api from '../services/api';
 
 const initialForm = {
   date: new Date().toISOString().slice(0, 10),
+  buyerId: '',
   cowMorning: '',
   cowEvening: '',
   buffaloMorning: '',
@@ -19,6 +20,7 @@ const convertToKg = (value, unit) => {
 export default function MilkEntryPage() {
   const [form, setForm] = useState(initialForm);
   const [entries, setEntries] = useState([]);
+  const [buyers, setBuyers] = useState([]);
   const [unit, setUnit] = useState('kg');
   const [editingId, setEditingId] = useState(null);
 
@@ -30,6 +32,11 @@ export default function MilkEntryPage() {
     setEntries(data);
   };
 
+  const getBuyers = async () => {
+    const { data } = await api.get('/buyers');
+    setBuyers(data);
+  };
+
   const resetForm = () => {
     setForm(initialForm);
     setEditingId(null);
@@ -38,6 +45,7 @@ export default function MilkEntryPage() {
 
   useEffect(() => {
     getEntries();
+    getBuyers();
   }, []);
 
   const handleChange = (e) => {
@@ -48,6 +56,7 @@ export default function MilkEntryPage() {
     setEditingId(entry._id);
     setForm({
       date: new Date(entry.date).toISOString().slice(0, 10),
+      buyerId: entry.buyerId?._id || '',
       cowMorning: entry.cowMorning,
       cowEvening: entry.cowEvening,
       buffaloMorning: entry.buffaloMorning,
@@ -100,6 +109,14 @@ export default function MilkEntryPage() {
       <div className="rounded-3xl border border-white/40 bg-white/60 p-5 shadow-lg">
         <h2 className="mb-4 text-xl font-bold text-slate-900">{editingId ? 'Edit Milk Entry' : 'Milk Entry'}</h2>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+          <label><span className="mb-1 block text-sm font-semibold">Buyer</span>
+            <select name="buyerId" value={form.buyerId} onChange={handleChange} className="w-full rounded-2xl border px-4 py-3" required>
+              <option value="">Select buyer</option>
+              {buyers.map((buyer) => (
+                <option key={buyer._id} value={buyer._id}>{buyer.name}</option>
+              ))}
+            </select>
+          </label>
           <label><span className="mb-1 block text-sm font-semibold">Date</span><input name="date" type="date" className="w-full rounded-2xl border px-4 py-3" value={form.date} onChange={handleChange} required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Quantity Unit</span>
             <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full rounded-2xl border px-4 py-3">
