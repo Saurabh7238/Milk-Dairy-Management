@@ -135,7 +135,7 @@ export default function ReportPage() {
               <option key={buyer._id} value={buyer._id}>{buyer.name}</option>
             ))}
           </select>
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="rounded-2xl border px-4 py-3" />
+          <input type="date" value={fromDate} required onChange={(e) => setFromDate(e.target.value)} className="rounded-2xl border px-4 py-3" />
           <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="rounded-2xl border px-4 py-3" />
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
