@@ -13,14 +13,17 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [buyers, setBuyers] = useState([]);
   const [selectedBuyer, setSelectedBuyer] = useState('');
-  const [buyerSummary, setBuyerSummary] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
+      setLoading(true);
       try {
-        const [dashRes, buyersRes] = await Promise.all([api.get('/dashboard'), api.get('/buyers')]);
-        setDashboard(dashRes.data);
+        const [buyersRes, dashRes] = await Promise.all([
+          api.get('/buyers'),
+          api.get(`/dashboard${selectedBuyer ? `?buyerId=${selectedBuyer}` : ''}`),
+        ]);
         setBuyers(buyersRes.data || []);
+        setDashboard(dashRes.data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -28,27 +31,6 @@ export default function DashboardPage() {
       }
     };
     fetchDashboard();
-  }, []);
-
-  useEffect(() => {
-    const fetchBuyerSummary = async () => {
-      if (!selectedBuyer) {
-        setBuyerSummary(null);
-        return;
-      }
-      try {
-        const { data } = await api.get(`/milk?buyerId=${selectedBuyer}`);
-        const today = dayjs().startOf('day');
-        const entries = (data || []).filter((entry) => dayjs(entry.date).isSame(today, 'day'));
-        const cowMilk = entries.reduce((sum, entry) => sum + Number(entry.cowMorning || 0) + Number(entry.cowEvening || 0), 0);
-        const buffaloMilk = entries.reduce((sum, entry) => sum + Number(entry.buffaloMorning || 0) + Number(entry.buffaloEvening || 0), 0);
-        const totalMilk = cowMilk + buffaloMilk;
-        setBuyerSummary({ cowMilk, buffaloMilk, totalMilk });
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchBuyerSummary();
   }, [selectedBuyer]);
 
   if (loading) return <div className="rounded-3xl bg-white/70 p-6 text-slate-700">Loading dashboard...</div>;
@@ -74,8 +56,9 @@ export default function DashboardPage() {
         <StatCard title="Today's Buffalo Milk" value={`${dashboard?.today?.buffaloMilk ?? 0} kg`} icon={FaWater} accent="from-sky-500 to-cyan-500" />
         <StatCard title="Today's Total Milk" value={`${dashboard?.today?.totalMilk ?? 0} kg`} icon={FaCalendarDay} accent="from-green-500 to-lime-500" />
         <StatCard title="Current Month Total Milk" value={`${dashboard?.month?.totalMilk ?? 0} kg`} icon={FaCow} accent="from-emerald-500 to-teal-500" />
-        <StatCard title="Current Month Total Income" value={`₹${dashboard?.month?.totalIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-sky-500 to-blue-600" />
-        <StatCard title="Current Month Total Curd Income" value={`₹${dashboard?.month?.curdIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-indigo-500 to-cyan-500" />
+        <StatCard title="Current Month Milk Income" value={`₹${dashboard?.month?.milkIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-sky-500 to-blue-600" />
+        <StatCard title="Current Month Total Income" value={`₹${dashboard?.month?.totalIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-indigo-500 to-cyan-500" />
+        <StatCard title="Current Month Total Curd Income" value={`₹${dashboard?.month?.curdIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-violet-500 to-indigo-500" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -104,8 +87,8 @@ export default function DashboardPage() {
           </div>
         <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-2xl bg-emerald-50 p-4 text-sm">Date: {dayjs().format('DD MMM YYYY')}</div>
-            <div className="rounded-2xl bg-sky-50 p-4 text-sm">Cow Milk: {(buyerSummary ? buyerSummary.cowMilk : dashboard?.today?.cowMilk ?? 0).toFixed(2)} kg</div>
-            <div className="rounded-2xl bg-indigo-50 p-4 text-sm">Buffalo Milk: {(buyerSummary ? buyerSummary.buffaloMilk : dashboard?.today?.buffaloMilk ?? 0).toFixed(2)} kg</div>
+            <div className="rounded-2xl bg-sky-50 p-4 text-sm">Cow Milk: {(dashboard?.today?.cowMilk ?? 0).toFixed(2)} kg</div>
+            <div className="rounded-2xl bg-indigo-50 p-4 text-sm">Buffalo Milk: {(dashboard?.today?.buffaloMilk ?? 0).toFixed(2)} kg</div>
         </div>
       </div>
     </div>

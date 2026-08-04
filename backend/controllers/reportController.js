@@ -14,28 +14,43 @@ const getDashboard = async (req, res, next) => {
     const monthStart = dayjs().startOf('month').toDate();
     const monthEnd = dayjs().endOf('month').toDate();
 
-    const todayEntries = await MilkEntry.find({ userId: req.user.id, 
+    const { buyerId } = req.query;
+    const dateFilter = (start, end) => ({
+      date: {
+        $gte: start,
+        $lte: end,
+      },
+    });
+
+    const buyerFilter = {};
+    if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
+      buyerFilter.buyerId = new mongoose.Types.ObjectId(buyerId);
+    }
+
+    const todayEntries = await MilkEntry.find({
+      userId: req.user.id,
+      ...buyerFilter,
       date: {
         $gte: today.toDate(),
         $lt: today.add(1, 'day').toDate(),
       },
     });
 
-    const monthlyEntries = await MilkEntry.find({ userId: req.user.id, 
-      date: {
-        $gte: monthStart,
-        $lte: monthEnd,
-      },
+    const monthlyEntries = await MilkEntry.find({
+      userId: req.user.id,
+      ...buyerFilter,
+      ...dateFilter(monthStart, monthEnd),
     });
 
-    const monthlyCurd = await CurdEntry.find({ userId: req.user.id, 
-      date: {
-        $gte: monthStart,
-        $lte: monthEnd,
-      },
+    const monthlyCurd = await CurdEntry.find({
+      userId: req.user.id,
+      ...buyerFilter,
+      ...dateFilter(monthStart, monthEnd),
     });
 
-    const weeklyEntries = await MilkEntry.find({ userId: req.user.id, 
+    const weeklyEntries = await MilkEntry.find({
+      userId: req.user.id,
+      ...buyerFilter,
       date: {
         $gte: dayjs().subtract(6, 'day').startOf('day').toDate(),
         $lte: dayjs().endOf('day').toDate(),
@@ -66,10 +81,19 @@ const getDashboard = async (req, res, next) => {
     const monthMilkTotal = monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) + Number(item.buffaloTotal || 0), 0);
     const curdIncome = monthlyCurd.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-    const rates = await MonthlyRate.findOne({ userId: req.user.id, month: dayjs().month() + 1, year: dayjs().year() });
+    let rates = null;
+    const currentMonth = dayjs().month() + 1;
+    const currentYear = dayjs().year();
+    if (buyerFilter.buyerId) {
+      rates = await MonthlyRate.findOne({ userId: req.user.id, buyerId: buyerFilter.buyerId, month: currentMonth, year: currentYear });
+    }
+    if (!rates) {
+      rates = await MonthlyRate.findOne({ userId: req.user.id, buyerId: null, month: currentMonth, year: currentYear });
+    }
     const cowRate = rates?.cowRate || 0;
     const buffaloRate = rates?.buffaloRate || 0;
     const milkIncome = monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) * cowRate + Number(item.buffaloTotal || 0) * buffaloRate, 0);
+    const totalIncome = milkIncome + curdIncome;
 
     res.json({
       today: {
@@ -79,8 +103,9 @@ const getDashboard = async (req, res, next) => {
       },
       month: {
         totalMilk: monthMilkTotal,
-        totalIncome: milkIncome,
+        milkIncome,
         curdIncome,
+        totalIncome,
       },
       monthlyRates: rates || null,
       charts: {
@@ -191,7 +216,7 @@ const createMonthlyRate = async (req, res, next) => {
       const updatedRate = await MonthlyRate.findOneAndUpdate(
         { _id: existingRate._id },
         { $set: { buyerId, month, year, cowRate, buffaloRate } },
-        { new: true, runValidators: true },
+        { returnDocument: 'after', runValidators: true },
       );
       return res.status(200).json(updatedRate);
     }
@@ -214,7 +239,7 @@ const createMonthlyRate = async (req, res, next) => {
           const updated = await MonthlyRate.findOneAndUpdate(
             { _id: fallbackRate._id },
             { $set: { cowRate: Number(req.body.cowRate ?? 0), buffaloRate: Number(req.body.buffaloRate ?? 0) } },
-            { new: true, runValidators: true },
+            { returnDocument: 'after', runValidators: true },
           );
           return res.status(200).json(updated);
         }
@@ -232,7 +257,11 @@ const getMonthlyRates = async (req, res, next) => {
     const filter = { userId: req.user.id };
 
     if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
-      filter.buyerId = new mongoose.Types.ObjectId(buyerId);
+      filter.$or = [
+        { buyerId: new mongoose.Types.ObjectId(buyerId) },
+        { buyerId: null },
+        { buyerId: { $exists: false } },
+      ];
     } else {
       filter.buyerId = null;
     }

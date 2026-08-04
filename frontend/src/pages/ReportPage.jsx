@@ -133,6 +133,9 @@ export default function ReportPage() {
     <div className="space-y-6">
       <div className="rounded-3xl border border-white/40 bg-white/60 p-5 shadow-lg">
         <h2 className="mb-4 text-xl font-bold text-slate-900">Monthly Report</h2>
+        {buyerId && (
+          <div className="mb-4 rounded-2xl bg-slate-100 p-3 text-sm font-medium text-slate-700">Selected Buyer: {buyers.find((buyer) => buyer._id === buyerId)?.name || 'Unknown'}</div>
+        )}
         <div className="grid gap-4 md:grid-cols-5">
           <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="rounded-2xl border px-4 py-3">
             {[...Array(12)].map((_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}
