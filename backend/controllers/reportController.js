@@ -3,6 +3,9 @@ const CurdEntry = require('../models/CurdEntry');
 const MonthlyRate = require('../models/MonthlyRate');
 const Buyer = require('../models/Buyer');
 const dayjs = require('dayjs');
+const isBetween = require('dayjs/plugin/isBetween');
+
+dayjs.extend(isBetween);
 
 const getDashboard = async (req, res, next) => {
   try {
@@ -38,8 +41,9 @@ const getDashboard = async (req, res, next) => {
       },
     }).sort({ date: 1 });
 
+    const monthStartDay = dayjs().startOf('month');
     const monthlySeries = Array.from({ length: 4 }, (_, index) => {
-      const start = dayjs().startOf('month').add(index * 7, 'day');
+      const start = monthStartDay.add(index * 7, 'day');
       const end = start.add(6, 'day');
       const weekEntries = monthlyEntries.filter((entry) => {
         const d = dayjs(entry.date);
