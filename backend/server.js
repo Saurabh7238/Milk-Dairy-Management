@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
+const mongoose = require('mongoose');
 const seedAdmin = require('./config/seedAdmin');
 const authRoutes = require('./routes/authRoutes');
 const milkRoutes = require('./routes/milkRoutes');
@@ -19,7 +20,8 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+  const state = mongoose.connection.readyState; // 0 = disconnected, 1 = connected
+  res.json({ status: 'ok', dbState: state });
 });
 
 app.use('/api', authRoutes);
@@ -31,9 +33,14 @@ app.use('/api', buyerRoutes);
 app.use(errorHandler);
 
 const startServer = async () => {
-  await connectDB();
-  await seedAdmin();
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  try {
+    await connectDB();
+    await seedAdmin();
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  } catch (err) {
+    console.error('Failed to start server:', err.message);
+    process.exit(1);
+  }
 };
 
 startServer();
