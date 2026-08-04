@@ -1,12 +1,16 @@
 {
-  "services": {
-    "frontend": {
+  "projects": [
+    {
+      "name": "frontend",
       "root": "frontend",
-      "framework": "vite"
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
     },
-    "backend": {
+    {
+      "name": "backend",
       "root": "backend",
-      "framework": "express"
+      "buildCommand": "npm install && npm run start",
+      "outputDirectory": ""
     }
-  }
+  ]
 }
