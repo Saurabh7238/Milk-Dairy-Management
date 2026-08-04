@@ -49,6 +49,15 @@ export default function CurdEntryPage() {
     });
   };
 
+  const handleBuyerChange = (buyerId) => {
+    const selectedBuyer = buyers.find((buyer) => buyer._id === buyerId);
+    setForm({
+      ...form,
+      buyerId,
+      rate: selectedBuyer?.rate ?? '',
+    });
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this curd entry?')) return;
     try {
@@ -84,7 +93,7 @@ export default function CurdEntryPage() {
         <h2 className="mb-4 text-xl font-bold text-slate-900">{editingId ? 'Edit Curd Entry' : 'Curd Entry'}</h2>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <label><span className="mb-1 block text-sm font-semibold">Buyer</span>
-            <select name="buyerId" value={form.buyerId} onChange={(e) => setForm({ ...form, buyerId: e.target.value })} className="w-full rounded-2xl border px-4 py-3" required>
+            <select name="buyerId" value={form.buyerId} onChange={(e) => handleBuyerChange(e.target.value)} className="w-full rounded-2xl border px-4 py-3" required>
               <option value="">Select buyer</option>
               {buyers.map((buyer) => (
                 <option key={buyer._id} value={buyer._id}>{buyer.name}</option>

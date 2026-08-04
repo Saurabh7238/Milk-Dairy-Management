@@ -34,6 +34,15 @@ const milkEntrySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    rate: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    amount: {
+      type: Number,
+      default: 0,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

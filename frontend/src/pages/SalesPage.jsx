@@ -37,6 +37,15 @@ export default function SalesPage() {
     }
   };
 
+  const handleBuyerChange = (buyerId) => {
+    const selectedBuyer = buyers.find((buyer) => buyer._id === buyerId);
+    setForm({
+      ...form,
+      buyerId,
+      rate: selectedBuyer ? selectedBuyer.rate : '',
+    });
+  };
+
   const exportReport = async () => {
     try {
       const response = await api.get('/sales-export', { responseType: 'blob' });
@@ -71,7 +80,7 @@ export default function SalesPage() {
       <div className="rounded-3xl border border-white/40 bg-white/60 p-5 shadow-lg">
         <h3 className="mb-3 text-lg font-bold text-slate-900">Sell Milk to Buyer</h3>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={saveSale}>
-          <label><span className="mb-1 block text-sm font-semibold">Buyer</span><select value={form.buyerId} onChange={(e) => setForm({ ...form, buyerId: e.target.value })} className="w-full rounded-2xl border px-4 py-3" required><option value="">Select buyer</option>{buyers.map((buyer) => <option key={buyer._id} value={buyer._id}>{buyer.name}</option>)}</select></label>
+          <label><span className="mb-1 block text-sm font-semibold">Buyer</span><select value={form.buyerId} onChange={(e) => handleBuyerChange(e.target.value)} className="w-full rounded-2xl border px-4 py-3" required><option value="">Select buyer</option>{buyers.map((buyer) => <option key={buyer._id} value={buyer._id}>{buyer.name}</option>)}</select></label>
           <label><span className="mb-1 block text-sm font-semibold">Date</span><input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="w-full rounded-2xl border px-4 py-3" required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Quantity (L)</span><input type="number" min="0" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="w-full rounded-2xl border px-4 py-3" required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Rate</span><input type="number" min="0" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} className="w-full rounded-2xl border px-4 py-3" required /></label>

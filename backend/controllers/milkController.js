@@ -3,7 +3,7 @@ const dayjs = require('dayjs');
 
 const createMilkEntry = async (req, res) => {
   try {
-    const { date, cowMorning, cowEvening, buffaloMorning, buffaloEvening, remarks } = req.body;
+    const { date, cowMorning, cowEvening, buffaloMorning, buffaloEvening, rate, remarks } = req.body;
 
     if (!date) {
       return res.status(400).json({ message: 'Date is required' });
@@ -18,6 +18,8 @@ const createMilkEntry = async (req, res) => {
     const normalizedCowEvening = Number(cowEvening || 0);
     const normalizedBuffaloMorning = Number(buffaloMorning || 0);
     const normalizedBuffaloEvening = Number(buffaloEvening || 0);
+    const normalizedRate = Number(rate || 0);
+    const totalMilk = normalizedCowMorning + normalizedCowEvening + normalizedBuffaloMorning + normalizedBuffaloEvening;
 
     const entry = await MilkEntry.findOneAndUpdate(
       { date: entryDate.toDate(), userId: req.user.id, buyerId: req.body.buyerId },
@@ -32,6 +34,8 @@ const createMilkEntry = async (req, res) => {
           buffaloMorning: normalizedBuffaloMorning,
           buffaloEvening: normalizedBuffaloEvening,
           buffaloTotal: normalizedBuffaloMorning + normalizedBuffaloEvening,
+          rate: normalizedRate,
+          amount: totalMilk * normalizedRate,
           remarks,
         },
       },
@@ -63,6 +67,8 @@ const updateMilkEntry = async (req, res) => {
     const normalizedCowEvening = Number(update.cowEvening || 0);
     const normalizedBuffaloMorning = Number(update.buffaloMorning || 0);
     const normalizedBuffaloEvening = Number(update.buffaloEvening || 0);
+    const normalizedRate = Number(update.rate || 0);
+    const totalMilk = normalizedCowMorning + normalizedCowEvening + normalizedBuffaloMorning + normalizedBuffaloEvening;
 
     const entry = await MilkEntry.findOneAndUpdate(
       { _id: id, userId: req.user.id },
@@ -75,6 +81,8 @@ const updateMilkEntry = async (req, res) => {
         buffaloMorning: normalizedBuffaloMorning,
         buffaloEvening: normalizedBuffaloEvening,
         buffaloTotal: normalizedBuffaloMorning + normalizedBuffaloEvening,
+        rate: normalizedRate,
+        amount: totalMilk * normalizedRate,
       },
       { new: true, runValidators: true },
     );
