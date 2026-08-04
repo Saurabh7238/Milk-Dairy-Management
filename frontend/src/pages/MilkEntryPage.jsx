@@ -5,7 +5,6 @@ import api from '../services/api';
 const initialForm = {
   date: new Date().toISOString().slice(0, 10),
   buyerId: '',
-  rate: '',
   cowMorning: '',
   cowEvening: '',
   buffaloMorning: '',
@@ -27,8 +26,6 @@ export default function MilkEntryPage() {
 
   const cowTotal = useMemo(() => convertToKg(form.cowMorning || 0, unit) + convertToKg(form.cowEvening || 0, unit), [form.cowMorning, form.cowEvening, unit]);
   const buffaloTotal = useMemo(() => convertToKg(form.buffaloMorning || 0, unit) + convertToKg(form.buffaloEvening || 0, unit), [form.buffaloMorning, form.buffaloEvening, unit]);
-  const totalMilk = useMemo(() => cowTotal + buffaloTotal, [cowTotal, buffaloTotal]);
-  const amount = useMemo(() => totalMilk * Number(form.rate || 0), [totalMilk, form.rate]);
 
   const getEntries = async () => {
     const { data } = await api.get('/milk');
@@ -56,11 +53,9 @@ export default function MilkEntryPage() {
   };
 
   const handleBuyerChange = (buyerId) => {
-    const selectedBuyer = buyers.find((buyer) => buyer._id === buyerId);
     setForm({
       ...form,
       buyerId,
-      rate: selectedBuyer?.rate ?? '',
     });
   };
 
@@ -69,7 +64,6 @@ export default function MilkEntryPage() {
     setForm({
       date: new Date(entry.date).toISOString().slice(0, 10),
       buyerId: entry.buyerId?._id || '',
-      rate: entry.rate || '',
       cowMorning: entry.cowMorning,
       cowEvening: entry.cowEvening,
       buffaloMorning: entry.buffaloMorning,
@@ -130,7 +124,6 @@ export default function MilkEntryPage() {
               ))}
             </select>
           </label>
-          <label><span className="mb-1 block text-sm font-semibold">Rate per kg</span><input name="rate" type="number" min="0" value={form.rate} onChange={handleChange} className="w-full rounded-2xl border px-4 py-3" required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Date</span><input name="date" type="date" className="w-full rounded-2xl border px-4 py-3" value={form.date} onChange={handleChange} required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Quantity Unit</span>
             <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full rounded-2xl border px-4 py-3">
@@ -144,10 +137,9 @@ export default function MilkEntryPage() {
           <label><span className="mb-1 block text-sm font-semibold">Buffalo Evening ({unit === 'pao' ? 'pao' : 'kg'})</span><input name="buffaloEvening" type="number" min="0" className="w-full rounded-2xl border px-4 py-3" value={form.buffaloEvening} onChange={handleChange} /></label>
           <label><span className="mb-1 block text-sm font-semibold">Notes</span><input name="remarks" className="w-full rounded-2xl border px-4 py-3" value={form.remarks} onChange={handleChange} /></label>
           <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2">
               <div>Cow Total: {cowTotal.toFixed(2)} kg</div>
               <div>Buffalo Total: {buffaloTotal.toFixed(2)} kg</div>
-              <div>Amount: ₹{amount.toFixed(2)}</div>
             </div>
             <div className="mt-2 text-xs text-slate-500">Note: 1 pao / quarter = 0.25 kg.</div>
           </div>
@@ -167,8 +159,6 @@ export default function MilkEntryPage() {
                 <th className="p-3">Date</th>
                 <th className="p-3">Cow Total</th>
                 <th className="p-3">Buffalo Total</th>
-                <th className="p-3">Rate</th>
-                <th className="p-3">Amount</th>
                 <th className="p-3">Remarks</th>
                 <th className="p-3">Action</th>
               </tr>
@@ -179,8 +169,6 @@ export default function MilkEntryPage() {
                   <td className="p-3">{new Date(entry.date).toLocaleDateString()}</td>
                   <td className="p-3">{entry.cowTotal}</td>
                   <td className="p-3">{entry.buffaloTotal}</td>
-                  <td className="p-3">₹{entry.rate ?? 0}</td>
-                  <td className="p-3">₹{entry.amount ?? 0}</td>
                   <td className="p-3">{entry.remarks || '-'}</td>
                   <td className="p-3">
                     <div className="flex gap-2">
