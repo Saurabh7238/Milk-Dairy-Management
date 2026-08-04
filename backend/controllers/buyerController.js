@@ -41,7 +41,9 @@ const deleteBuyer = async (req, res) => {
 
 const listSales = async (req, res) => {
   try {
-    const sales = await Sale.find({ userId: req.user.id }).populate('buyerId').sort({ date: -1 });
+    const filter = { userId: req.user.id };
+    if (req.query.buyerId) filter.buyerId = req.query.buyerId;
+    const sales = await Sale.find(filter).populate('buyerId').sort({ date: -1 });
     return res.json(sales);
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to load sales' });
@@ -79,7 +81,9 @@ const deleteSale = async (req, res) => {
 
 const getSalesSummary = async (req, res) => {
   try {
-    const sales = await Sale.find({ userId: req.user.id }).populate('buyerId').sort({ date: -1 });
+    const filter = { userId: req.user.id };
+    if (req.query.buyerId) filter.buyerId = req.query.buyerId;
+    const sales = await Sale.find(filter).populate('buyerId').sort({ date: -1 });
     const totalQuantity = sales.reduce((sum, sale) => sum + Number(sale.quantity || 0), 0);
     const totalAmount = sales.reduce((sum, sale) => sum + Number(sale.amount || 0), 0);
     const buyerCount = new Set(sales.map((sale) => sale.buyerId?._id?.toString())).size;

@@ -11,12 +11,16 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 export default function DashboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+    const [buyers, setBuyers] = useState([]);
+    const [selectedBuyer, setSelectedBuyer] = useState('');
+    const [buyerSummary, setBuyerSummary] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const { data } = await api.get('/dashboard');
-        setDashboard(data);
+        const [dashRes, buyersRes] = await Promise.all([api.get('/dashboard'), api.get('/buyers')]);
+        setDashboard(dashRes.data);
+        setBuyers(buyersRes.data || []);
       } catch (error) {
         console.error(error);
       } finally {
@@ -25,6 +29,22 @@ export default function DashboardPage() {
     };
     fetchDashboard();
   }, []);
+
+  useEffect(() => {
+    const fetchBuyerSummary = async () => {
+      if (!selectedBuyer) {
+        setBuyerSummary(null);
+        return;
+      }
+      try {
+        const { data } = await api.get(`/sales-summary?buyerId=${selectedBuyer}`);
+        setBuyerSummary(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchBuyerSummary();
+  }, [selectedBuyer]);
 
   if (loading) return <div className="rounded-3xl bg-white/70 p-6 text-slate-700">Loading dashboard...</div>;
 
@@ -66,11 +86,22 @@ export default function DashboardPage() {
       </div>
 
       <div className="rounded-3xl border border-white/40 bg-white/60 p-5 shadow-lg">
-        <h3 className="mb-4 text-lg font-semibold text-slate-800">Today's Summary</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">Today's Summary</h3>
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-slate-600">Filter by buyer:</label>
+              <select value={selectedBuyer} onChange={(e) => setSelectedBuyer(e.target.value)} className="rounded-2xl border px-3 py-2 text-sm">
+                <option value="">All buyers</option>
+                {buyers.map((b) => (
+                  <option key={b._id} value={b._id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-2xl bg-emerald-50 p-4 text-sm">Date: {dayjs().format('DD MMM YYYY')}</div>
-          <div className="rounded-2xl bg-sky-50 p-4 text-sm">Cow Milk: {dashboard?.today?.cowMilk ?? 0} kg</div>
-          <div className="rounded-2xl bg-indigo-50 p-4 text-sm">Buffalo Milk: {dashboard?.today?.buffaloMilk ?? 0} kg</div>
+            <div className="rounded-2xl bg-emerald-50 p-4 text-sm">Date: {dayjs().format('DD MMM YYYY')}</div>
+            <div className="rounded-2xl bg-sky-50 p-4 text-sm">Cow Milk: {buyerSummary ? buyerSummary.totalQuantity : dashboard?.today?.cowMilk ?? 0} kg</div>
+            <div className="rounded-2xl bg-indigo-50 p-4 text-sm">Buffalo Milk: {buyerSummary ? buyerSummary.totalAmount : dashboard?.today?.buffaloMilk ?? 0} </div>
         </div>
       </div>
     </div>
