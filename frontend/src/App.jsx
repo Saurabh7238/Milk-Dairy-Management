@@ -15,10 +15,12 @@ import SalesPage from './pages/SalesPage';
 
 function AppShell() {
   const { token } = useAuth();
+  const disableAuth = import.meta.env.VITE_DISABLE_AUTH === 'true';
+  const isAuthenticated = disableAuth || !!token;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#dcfce7,_#eff6ff)] p-4 text-slate-800 md:p-6">
-      {token ? (
+      {isAuthenticated ? (
         <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row">
           <Sidebar />
           <main className="flex-1 rounded-3xl border border-white/40 bg-white/30 p-4 shadow-xl backdrop-blur-xl md:p-6">

@@ -10,20 +10,24 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const disableAuth = import.meta.env.VITE_DISABLE_AUTH === 'true';
+
   const login = async (username, password) => {
     const { data } = await api.post('/login', { username, password });
-    localStorage.setItem('token', data.token);
+    const nextToken = disableAuth ? '' : data.token;
+    localStorage.setItem('token', nextToken);
     localStorage.setItem('user', JSON.stringify(data.user));
-    setToken(data.token);
+    setToken(nextToken);
     setUser(data.user);
     return data;
   };
 
   const signup = async (username, password, name, phone) => {
     const { data } = await api.post('/signup', { username, password, name, phone });
-    localStorage.setItem('token', data.token);
+    const nextToken = disableAuth ? '' : data.token;
+    localStorage.setItem('token', nextToken);
     localStorage.setItem('user', JSON.stringify(data.user));
-    setToken(data.token);
+    setToken(nextToken);
     setUser(data.user);
     return data;
   };

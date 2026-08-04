@@ -1,6 +1,17 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/Admin');
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
+  if (process.env.DISABLE_AUTH === 'true') {
+    try {
+      const fallbackUser = await User.findOne({}).sort({ createdAt: 1 });
+      req.user = { id: process.env.DEFAULT_USER_ID || fallbackUser?._id?.toString() || null };
+      return next();
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
