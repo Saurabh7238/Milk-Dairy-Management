@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import dayjs from 'dayjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -14,6 +15,8 @@ export default function ReportPage() {
   const [buffaloRateInput, setBuffaloRateInput] = useState('');
   const [buyers, setBuyers] = useState([]);
   const [buyerId, setBuyerId] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   const fetchBuyers = async () => {
     try {
@@ -26,7 +29,11 @@ export default function ReportPage() {
 
   const fetchReport = async () => {
     try {
-      const { data } = await api.get('/monthly-report', { params: { month, year, buyerId: buyerId || undefined } });
+      const params = { month, year, buyerId: buyerId || undefined };
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+
+      const { data } = await api.get('/monthly-report', { params });
       setReport(data);
       setCowRateInput(data.cowRate || '');
       setBuffaloRateInput(data.buffaloRate || '');
@@ -38,9 +45,12 @@ export default function ReportPage() {
   const fetchRates = async () => {
     try {
       const { data } = await api.get('/monthly-rate', { params: { buyerId: buyerId || undefined } });
-      let matchedRate = data.find((r) => r.month === month && r.year === year && String(r.buyerId || '') === String(buyerId || ''));
+      const effectiveMonth = fromDate ? dayjs(fromDate).month() + 1 : month;
+      const effectiveYear = fromDate ? dayjs(fromDate).year() : year;
+
+      let matchedRate = data.find((r) => r.month === effectiveMonth && r.year === effectiveYear && String(r.buyerId || '') === String(buyerId || ''));
       if (!matchedRate && buyerId) {
-        matchedRate = data.find((r) => r.month === month && r.year === year && (!r.buyerId || String(r.buyerId) === ''));
+        matchedRate = data.find((r) => r.month === effectiveMonth && r.year === effectiveYear && (!r.buyerId || String(r.buyerId) === ''));
       }
       setRates(matchedRate || null);
       if (matchedRate) {
@@ -59,13 +69,16 @@ export default function ReportPage() {
   useEffect(() => {
     fetchReport();
     fetchRates();
-  }, [month, year, buyerId]);
+  }, [month, year, buyerId, fromDate, toDate]);
 
   const saveMonthlyRate = async () => {
     try {
+      const rateMonth = fromDate ? dayjs(fromDate).month() + 1 : month;
+      const rateYear = fromDate ? dayjs(fromDate).year() : year;
+
       await api.post('/monthly-rate', {
-        month,
-        year,
+        month: rateMonth,
+        year: rateYear,
         buyerId: buyerId || undefined,
         cowRate: Number(cowRateInput || 0),
         buffaloRate: Number(buffaloRateInput || 0),
@@ -122,6 +135,10 @@ export default function ReportPage() {
               <option key={buyer._id} value={buyer._id}>{buyer.name}</option>
             ))}
           </select>
+          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="rounded-2xl border px-4 py-3" />
+          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="rounded-2xl border px-4 py-3" />
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl bg-slate-50 p-3 text-sm">
             <div>Cow cost: ₹<input type="number" min="0" value={cowRateInput} onChange={(e) => setCowRateInput(e.target.value)} className="mt-1 w-full rounded-xl border px-2 py-1" /></div>
           </div>
