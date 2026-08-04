@@ -3,14 +3,15 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 function ensureDatabaseName(uri, defaultDb = 'milk-dairy') {
   if (!uri) return uri;
-  // If there's already a path segment after the host (i.e. a DB name), leave as-is
-  // This regex checks for '/<dbname>' before optional query string
-  const hasDb = /\/[^\/?]+(\?|$)/.test(uri);
+  const [base, query] = uri.split('?');
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+
+  // If there's already a DB name after the host, leave as-is
+  // e.g. mongodb+srv://user:pass@cluster0.qc29hhb.mongodb.net/mydb
+  const hasDb = /\/[^\/?]+$/.test(normalizedBase);
   if (hasDb) return uri;
 
-  // Insert default database name before any query string
-  const [base, query] = uri.split('?');
-  return `${base}/${defaultDb}${query ? '?' + query : ''}`;
+  return `${normalizedBase}/${defaultDb}${query ? '?' + query : ''}`;
 }
 
 const connectDB = async () => {
