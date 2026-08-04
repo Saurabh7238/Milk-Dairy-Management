@@ -56,6 +56,8 @@ export default function DashboardPage() {
         <StatCard title="Today's Buffalo Milk" value={`${dashboard?.today?.buffaloMilk ?? 0} kg`} icon={FaWater} accent="from-sky-500 to-cyan-500" />
         <StatCard title="Today's Total Milk" value={`${dashboard?.today?.totalMilk ?? 0} kg`} icon={FaCalendarDay} accent="from-green-500 to-lime-500" />
         <StatCard title="Current Month Total Milk" value={`${dashboard?.month?.totalMilk ?? 0} kg`} icon={FaCow} accent="from-emerald-500 to-teal-500" />
+        <StatCard title="Current Month Cow Rate" value={`₹${dashboard?.monthlyRates?.cowRate ?? 0} /kg`} icon={FaIndianRupeeSign} accent="from-sky-500 to-blue-600" />
+        <StatCard title="Current Month Buffalo Rate" value={`₹${dashboard?.monthlyRates?.buffaloRate ?? 0} /kg`} icon={FaIndianRupeeSign} accent="from-sky-500 to-blue-600" />
         <StatCard title="Current Month Milk Income" value={`₹${dashboard?.month?.milkIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-sky-500 to-blue-600" />
         <StatCard title="Current Month Total Income" value={`₹${dashboard?.month?.totalIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-indigo-500 to-cyan-500" />
         <StatCard title="Current Month Total Curd Income" value={`₹${dashboard?.month?.curdIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-violet-500 to-indigo-500" />

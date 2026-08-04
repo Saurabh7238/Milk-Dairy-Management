@@ -81,15 +81,23 @@ const getDashboard = async (req, res, next) => {
     const monthMilkTotal = monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) + Number(item.buffaloTotal || 0), 0);
     const curdIncome = monthlyCurd.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-    let rates = null;
     const currentMonth = dayjs().month() + 1;
     const currentYear = dayjs().year();
+    const defaultRateFilter = {
+      userId: req.user.id,
+      month: currentMonth,
+      year: currentYear,
+      $or: [{ buyerId: null }, { buyerId: { $exists: false } }],
+    };
+
+    let rates = null;
     if (buyerFilter.buyerId) {
       rates = await MonthlyRate.findOne({ userId: req.user.id, buyerId: buyerFilter.buyerId, month: currentMonth, year: currentYear });
     }
     if (!rates) {
-      rates = await MonthlyRate.findOne({ userId: req.user.id, buyerId: null, month: currentMonth, year: currentYear });
+      rates = await MonthlyRate.findOne(defaultRateFilter);
     }
+
     const cowRate = rates?.cowRate || 0;
     const buffaloRate = rates?.buffaloRate || 0;
     const milkIncome = rates
@@ -157,12 +165,19 @@ const getMonthlyReport = async (req, res, next) => {
     const rateMonth = fromDate ? dayjs(fromDate).month() + 1 : monthNumber;
     const rateYear = fromDate ? dayjs(fromDate).year() : yearNumber;
 
+    const defaultRateFilter = {
+      userId: req.user.id,
+      month: rateMonth,
+      year: rateYear,
+      $or: [{ buyerId: null }, { buyerId: { $exists: false } }],
+    };
+
     let monthlyRate = null;
     if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
       monthlyRate = await MonthlyRate.findOne({ userId: req.user.id, buyerId: new mongoose.Types.ObjectId(buyerId), month: rateMonth, year: rateYear });
     }
     if (!monthlyRate) {
-      monthlyRate = await MonthlyRate.findOne({ userId: req.user.id, buyerId: null, month: rateMonth, year: rateYear });
+      monthlyRate = await MonthlyRate.findOne(defaultRateFilter);
     }
 
     const cowMilkTotal = milkEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0), 0);
@@ -206,15 +221,16 @@ const createMonthlyRate = async (req, res, next) => {
       : null;
 
     const baseFilter = { userId: req.user.id, month, year };
-    const lookupFilter = buyerId
-      ? { $or: [
-          { ...baseFilter, buyerId },
-          { ...baseFilter, buyerId: null },
-          { ...baseFilter, buyerId: { $exists: false } },
-        ] }
-      : { ...baseFilter, $or: [{ buyerId: null }, { buyerId: { $exists: false } }] };
+    let existingRate = null;
 
-    const existingRate = await MonthlyRate.findOne(lookupFilter);
+    if (buyerId) {
+      existingRate = await MonthlyRate.findOne({ ...baseFilter, buyerId });
+    } else {
+      existingRate = await MonthlyRate.findOne({
+        ...baseFilter,
+        $or: [{ buyerId: null }, { buyerId: { $exists: false } }],
+      });
+    }
 
     if (existingRate) {
       const updatedRate = await MonthlyRate.findOneAndUpdate(
@@ -267,7 +283,7 @@ const getMonthlyRates = async (req, res, next) => {
         { buyerId: { $exists: false } },
       ];
     } else {
-      filter.buyerId = null;
+      filter.$or = [{ buyerId: null }, { buyerId: { $exists: false } }];
     }
 
     const rates = await MonthlyRate.find(filter).sort({ year: -1, month: -1 });
