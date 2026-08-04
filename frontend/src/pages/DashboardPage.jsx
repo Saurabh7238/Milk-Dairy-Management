@@ -60,6 +60,11 @@ export default function DashboardPage() {
         <StatCard title="Current Month Total Income" value={`₹${dashboard?.month?.totalIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-indigo-500 to-cyan-500" />
         <StatCard title="Current Month Total Curd Income" value={`₹${dashboard?.month?.curdIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-violet-500 to-indigo-500" />
       </div>
+      {dashboard?.monthlyRates == null && dashboard?.month?.totalMilk > 0 && (
+        <div className="rounded-3xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-700">
+          No current monthly rate is defined yet. Milk income is calculated from entry amounts when rates are unavailable, so it may appear as zero until rates are set in the Monthly Report page.
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-3xl border border-white/40 bg-white/60 p-5 shadow-lg">

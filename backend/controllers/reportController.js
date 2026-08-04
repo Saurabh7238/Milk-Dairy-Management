@@ -92,7 +92,9 @@ const getDashboard = async (req, res, next) => {
     }
     const cowRate = rates?.cowRate || 0;
     const buffaloRate = rates?.buffaloRate || 0;
-    const milkIncome = monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) * cowRate + Number(item.buffaloTotal || 0) * buffaloRate, 0);
+    const milkIncome = rates
+      ? monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) * cowRate + Number(item.buffaloTotal || 0) * buffaloRate, 0)
+      : monthlyEntries.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const totalIncome = milkIncome + curdIncome;
 
     res.json({
@@ -168,7 +170,9 @@ const getMonthlyReport = async (req, res, next) => {
     const grandMilkTotal = cowMilkTotal + buffaloMilkTotal;
     const cowRate = monthlyRate?.cowRate || 0;
     const buffaloRate = monthlyRate?.buffaloRate || 0;
-    const milkIncome = cowMilkTotal * cowRate + buffaloMilkTotal * buffaloRate;
+    const milkIncome = monthlyRate
+      ? cowMilkTotal * cowRate + buffaloMilkTotal * buffaloRate
+      : milkEntries.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const curdIncome = curdEntries.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const finalIncome = milkIncome + curdIncome;
 

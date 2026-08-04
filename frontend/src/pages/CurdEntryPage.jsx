@@ -6,6 +6,7 @@ const initialForm = {
   date: new Date().toISOString().slice(0, 10),
   buyerId: '',
   quantity: '',
+  rate: '',
   remarks: '',
 };
 
@@ -98,6 +99,7 @@ export default function CurdEntryPage() {
           </label>
           <label><span className="mb-1 block text-sm font-semibold">Date</span><input type="date" name="date" className="w-full rounded-2xl border px-4 py-3" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Curd Quantity (kg)</span><input type="number" min="0" name="quantity" className="w-full rounded-2xl border px-4 py-3" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required /></label>
+          <label><span className="mb-1 block text-sm font-semibold">Rate per kg (₹)</span><input type="number" min="0" step="0.01" name="rate" className="w-full rounded-2xl border px-4 py-3" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} required /></label>
           <label><span className="mb-1 block text-sm font-semibold">Notes</span><input type="text" name="remarks" className="w-full rounded-2xl border px-4 py-3" value={form.remarks} onChange={(e) => setForm({ ...form, remarks: e.target.value })} /></label>
           <div className="flex gap-3 md:col-span-2">
             <button className="rounded-2xl bg-gradient-to-r from-emerald-500 to-sky-500 px-4 py-3 font-semibold text-white">{editingId ? 'Update Curd Entry' : 'Save Curd Entry'}</button>
@@ -114,6 +116,8 @@ export default function CurdEntryPage() {
               <tr className="bg-slate-100 text-left">
                 <th className="p-3">Date</th>
                 <th className="p-3">Quantity</th>
+                <th className="p-3">Rate</th>
+                <th className="p-3">Amount</th>
                 <th className="p-3">Remarks</th>
                 <th className="p-3">Action</th>
               </tr>
@@ -123,6 +127,8 @@ export default function CurdEntryPage() {
                 <tr key={entry._id} className="border-b">
                   <td className="p-3">{new Date(entry.date).toLocaleDateString()}</td>
                   <td className="p-3">{entry.quantity}</td>
+                  <td className="p-3">₹{entry.rate}</td>
+                  <td className="p-3">₹{entry.amount?.toFixed?.(2) ?? entry.amount}</td>
                   <td className="p-3">{entry.remarks || '-'}</td>
                   <td className="p-3">
                     <div className="flex gap-2">
