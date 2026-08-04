@@ -67,6 +67,15 @@ export default function ReportPage() {
   }, []);
 
   useEffect(() => {
+    if (!fromDate) {
+      setFromDate(dayjs(`${year}-${month}-01`).format('YYYY-MM-DD'));
+    }
+    if (!toDate) {
+      setToDate(dayjs(`${year}-${month}-01`).endOf('month').format('YYYY-MM-DD'));
+    }
+  }, [month, year]);
+
+  useEffect(() => {
     fetchReport();
     fetchRates();
   }, [month, year, buyerId, fromDate, toDate]);
