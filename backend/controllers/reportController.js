@@ -1,6 +1,9 @@
 const MilkEntry = require('../models/MilkEntry');
 const CurdEntry = require('../models/CurdEntry');
 const MonthlyRate = require('../models/MonthlyRate');
+const MilkEntry = require('../models/MilkEntry');
+const CurdEntry = require('../models/CurdEntry');
+const Buyer = require('../models/Buyer');
 const dayjs = require('dayjs');
 
 const getDashboard = async (req, res, next) => {
@@ -81,6 +84,12 @@ const getDashboard = async (req, res, next) => {
         monthly: monthlySeries,
         weekly: weeklySeries,
       },
+      debug: {
+        todayEntries: todayEntries.length,
+        monthlyEntries: monthlyEntries.length,
+        weeklyEntries: weeklyEntries.length,
+        buyers: await Buyer.countDocuments({ userId: req.user.id }),
+      },
     });
   } catch (error) {
     next(error);
@@ -137,12 +146,24 @@ const createMonthlyRate = async (req, res, next) => {
 
     const rate = await MonthlyRate.findOneAndUpdate(
       { userId: req.user.id, month, year },
-      { userId: req.user.id, month, year, cowRate, buffaloRate },
-      { upsert: true, new: true, runValidators: true },
+      { $set: { userId: req.user.id, month, year, cowRate, buffaloRate } },
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );
 
     res.status(201).json(rate);
   } catch (error) {
+    if (error.code === 11000) {
+      try {
+        const rate = await MonthlyRate.findOneAndUpdate(
+          { userId: req.user.id, month: req.body.month, year: req.body.year },
+          { $set: { cowRate: req.body.cowRate, buffaloRate: req.body.buffaloRate } },
+          { new: true, runValidators: true },
+        );
+        if (rate) return res.status(200).json(rate);
+      } catch (innerError) {
+        return next(innerError);
+      }
+    }
     next(error);
   }
 };
