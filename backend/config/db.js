@@ -40,9 +40,27 @@ const connectDB = async () => {
 
     await mongoose.connect(mongoUri);
     console.log('MongoDB connected');
+
+    await ensureMonthlyRateIndex();
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
     process.exit(1);
+  }
+};
+
+const ensureMonthlyRateIndex = async () => {
+  try {
+    const collection = mongoose.connection.collection('monthlyrates');
+    const indexes = await collection.indexes();
+    const oldIndex = indexes.find((idx) => idx.name === 'month_1_year_1');
+    if (oldIndex) {
+      await collection.dropIndex('month_1_year_1');
+      console.log('Dropped old monthly rates month/year unique index');
+    }
+    await collection.createIndex({ userId: 1, month: 1, year: 1 }, { unique: true });
+    console.log('Ensured monthly rates userId/month/year unique index');
+  } catch (err) {
+    console.warn('Unable to ensure monthly rate index:', err.message);
   }
 };
 
