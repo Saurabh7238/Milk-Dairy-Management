@@ -45,7 +45,7 @@ const connectDB = async () => {
     await mongoose.connect(mongoUri);
     console.log('MongoDB connected');
 
-    await ensureMonthlyRateIndex();
+    await ensureIndexes();
     return { usingMemory };
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
@@ -53,19 +53,29 @@ const connectDB = async () => {
   }
 };
 
-const ensureMonthlyRateIndex = async () => {
+const ensureIndexes = async () => {
   try {
-    const collection = mongoose.connection.collection('monthlyrates');
-    const indexes = await collection.indexes();
-    const oldIndex = indexes.find((idx) => idx.name === 'month_1_year_1');
-    if (oldIndex) {
-      await collection.dropIndex('month_1_year_1');
-      console.log('Dropped old monthly rates month/year unique index');
-    }
-    await collection.createIndex({ userId: 1, month: 1, year: 1 }, { unique: true });
-    console.log('Ensured monthly rates userId/month/year unique index');
+    await ensureCollectionIndex('monthlyrates', 'month_1_year_1', { userId: 1, month: 1, year: 1 }, { unique: true }, 'monthly rates');
+    await ensureCollectionIndex('milkentries', 'date_1', { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'milk entries');
+    await ensureCollectionIndex('curdentries', 'date_1', { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'curd entries');
   } catch (err) {
-    console.warn('Unable to ensure monthly rate index:', err.message);
+    console.warn('Unable to ensure indexes:', err.message);
+  }
+};
+
+const ensureCollectionIndex = async (collectionName, oldIndexName, newIndexSpec, newIndexOptions, label) => {
+  try {
+    const collection = mongoose.connection.collection(collectionName);
+    const indexes = await collection.indexes();
+    const oldIndex = indexes.find((idx) => idx.name === oldIndexName);
+    if (oldIndex) {
+      await collection.dropIndex(oldIndexName);
+      console.log(`Dropped old ${label} index ${oldIndexName}`);
+    }
+    await collection.createIndex(newIndexSpec, newIndexOptions);
+    console.log(`Ensured ${label} index ${JSON.stringify(newIndexSpec)}`);
+  } catch (err) {
+    console.warn(`Unable to ensure ${label} index:`, err.message);
   }
 };
 
