@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaClipboardList, FaCheese, FaFileInvoiceDollar, FaCalendarAlt, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { FaTachometerAlt, FaClipboardList, FaCheese, FaFileInvoiceDollar, FaCalendarAlt, FaCog, FaSignOutAlt, FaUsers } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 const links = [
@@ -7,6 +7,8 @@ const links = [
   { to: '/milk', label: 'Milk Entry', icon: FaClipboardList },
   { to: '/curd', label: 'Curd Entry', icon: FaCheese },
   { to: '/report', label: 'Monthly Report', icon: FaFileInvoiceDollar },
+  { to: '/buyers', label: 'Buyers', icon: FaUsers },
+  { to: '/sales', label: 'Sell Milk', icon: FaClipboardList },
   { to: '/calendar', label: 'Calendar', icon: FaCalendarAlt },
   { to: '/settings', label: 'Settings', icon: FaCog },
 ];

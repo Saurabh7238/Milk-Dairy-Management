@@ -1,18 +1,4 @@
-# Node dependencies
 backend/node_modules/
 frontend/node_modules/
-
-# Build outputs
-frontend/dist/
-
-# Local env / secrets
-backend/.env
-frontend/.env
+dist/
 .env
-.env.*
-!backend/.env.example
-
-# OS / editor
-.DS_Store
-Thumbs.db
-.vscode/

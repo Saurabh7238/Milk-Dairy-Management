@@ -13,9 +13,18 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     const { data } = await api.post('/login', { username, password });
     localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.admin));
+    localStorage.setItem('user', JSON.stringify(data.user));
     setToken(data.token);
-    setUser(data.admin);
+    setUser(data.user);
+    return data;
+  };
+
+  const signup = async (username, password, name, phone) => {
+    const { data } = await api.post('/signup', { username, password, name, phone });
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
     return data;
   };
 
@@ -26,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ token, user, login, logout }), [token, user]);
+  const value = useMemo(() => ({ token, user, login, signup, logout }), [token, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

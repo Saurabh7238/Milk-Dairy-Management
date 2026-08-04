@@ -18,8 +18,8 @@ const createCurdEntry = async (req, res) => {
     const normalizedRate = Number(rate || 0);
 
     const entry = await CurdEntry.findOneAndUpdate(
-      { date: entryDate.toDate() },
-      { date: entryDate.toDate(), quantity: normalizedQuantity, rate: normalizedRate, amount: normalizedQuantity * normalizedRate, remarks },
+      { date: entryDate.toDate(), userId: req.user.id },
+      { date: entryDate.toDate(), userId: req.user.id, quantity: normalizedQuantity, rate: normalizedRate, amount: normalizedQuantity * normalizedRate, remarks },
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );
 
@@ -31,7 +31,7 @@ const createCurdEntry = async (req, res) => {
 
 const getCurdEntries = async (req, res) => {
   try {
-    const entries = await CurdEntry.find().sort({ date: 1 });
+    const entries = await CurdEntry.find({ userId: req.user.id }).sort({ date: 1 });
     return res.json(entries);
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to fetch curd entries' });
@@ -43,8 +43,8 @@ const updateCurdEntry = async (req, res) => {
     const normalizedQuantity = Number(req.body.quantity || 0);
     const normalizedRate = Number(req.body.rate || 0);
 
-    const entry = await CurdEntry.findByIdAndUpdate(
-      req.params.id,
+    const entry = await CurdEntry.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
       {
         ...req.body,
         quantity: normalizedQuantity,
@@ -64,7 +64,7 @@ const updateCurdEntry = async (req, res) => {
 
 const deleteCurdEntry = async (req, res) => {
   try {
-    await CurdEntry.findByIdAndDelete(req.params.id);
+    await CurdEntry.deleteOne({ _id: req.params.id, userId: req.user.id });
     return res.json({ message: 'Curd entry deleted successfully' });
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to delete curd entry' });

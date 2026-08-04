@@ -20,9 +20,10 @@ const createMilkEntry = async (req, res) => {
     const normalizedBuffaloEvening = Number(buffaloEvening || 0);
 
     const entry = await MilkEntry.findOneAndUpdate(
-      { date: entryDate.toDate() },
+      { date: entryDate.toDate(), userId: req.user.id },
       {
         date: entryDate.toDate(),
+        userId: req.user.id,
         cowMorning: normalizedCowMorning,
         cowEvening: normalizedCowEvening,
         cowTotal: normalizedCowMorning + normalizedCowEvening,
@@ -42,7 +43,7 @@ const createMilkEntry = async (req, res) => {
 
 const getMilkEntries = async (req, res) => {
   try {
-    const entries = await MilkEntry.find().sort({ date: 1 });
+    const entries = await MilkEntry.find({ userId: req.user.id }).sort({ date: 1 });
     return res.json(entries);
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to fetch milk entries' });
@@ -58,8 +59,8 @@ const updateMilkEntry = async (req, res) => {
     const normalizedBuffaloMorning = Number(update.buffaloMorning || 0);
     const normalizedBuffaloEvening = Number(update.buffaloEvening || 0);
 
-    const entry = await MilkEntry.findByIdAndUpdate(
-      id,
+    const entry = await MilkEntry.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
       {
         ...update,
         cowMorning: normalizedCowMorning,
@@ -79,7 +80,7 @@ const updateMilkEntry = async (req, res) => {
 
 const deleteMilkEntry = async (req, res) => {
   try {
-    await MilkEntry.findByIdAndDelete(req.params.id);
+    await MilkEntry.deleteOne({ _id: req.params.id, userId: req.user.id });
     return res.json({ message: 'Milk entry deleted successfully' });
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Failed to delete milk entry' });

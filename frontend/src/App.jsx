@@ -10,6 +10,8 @@ import CurdEntryPage from './pages/CurdEntryPage';
 import ReportPage from './pages/ReportPage';
 import CalendarPage from './pages/CalendarPage';
 import SettingsPage from './pages/SettingsPage';
+import BuyersPage from './pages/BuyersPage';
+import SalesPage from './pages/SalesPage';
 
 function AppShell() {
   const { token } = useAuth();
@@ -25,6 +27,8 @@ function AppShell() {
               <Route path="/milk" element={<MilkEntryPage />} />
               <Route path="/curd" element={<CurdEntryPage />} />
               <Route path="/report" element={<ReportPage />} />
+              <Route path="/buyers" element={<BuyersPage />} />
+              <Route path="/sales" element={<SalesPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />

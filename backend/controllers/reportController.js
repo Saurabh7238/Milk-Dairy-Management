@@ -9,21 +9,21 @@ const getDashboard = async (req, res, next) => {
     const monthStart = dayjs().startOf('month').toDate();
     const monthEnd = dayjs().endOf('month').toDate();
 
-    const todayEntries = await MilkEntry.find({
+    const todayEntries = await MilkEntry.find({ userId: req.user.id, 
       date: {
         $gte: today.toDate(),
         $lt: today.add(1, 'day').toDate(),
       },
     });
 
-    const monthlyEntries = await MilkEntry.find({
+    const monthlyEntries = await MilkEntry.find({ userId: req.user.id, 
       date: {
         $gte: monthStart,
         $lte: monthEnd,
       },
     });
 
-    const monthlyCurd = await CurdEntry.find({
+    const monthlyCurd = await CurdEntry.find({ userId: req.user.id, 
       date: {
         $gte: monthStart,
         $lte: monthEnd,
@@ -36,7 +36,7 @@ const getDashboard = async (req, res, next) => {
     const monthMilkTotal = monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) + Number(item.buffaloTotal || 0), 0);
     const curdIncome = monthlyCurd.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-    const rates = await MonthlyRate.findOne({ month: dayjs().month() + 1, year: dayjs().year() });
+    const rates = await MonthlyRate.findOne({ userId: req.user.id, month: dayjs().month() + 1, year: dayjs().year() });
     const cowRate = rates?.cowRate || 0;
     const buffaloRate = rates?.buffaloRate || 0;
     const milkIncome = monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) * cowRate + Number(item.buffaloTotal || 0) * buffaloRate, 0);
@@ -68,15 +68,15 @@ const getMonthlyReport = async (req, res, next) => {
     const monthStart = dayjs(`${yearNumber}-${monthNumber}-01`).startOf('month').toDate();
     const monthEnd = dayjs(`${yearNumber}-${monthNumber}-01`).endOf('month').toDate();
 
-    const milkEntries = await MilkEntry.find({
+    const milkEntries = await MilkEntry.find({ userId: req.user.id, 
       date: { $gte: monthStart, $lte: monthEnd },
     }).sort({ date: 1 });
 
-    const curdEntries = await CurdEntry.find({
+    const curdEntries = await CurdEntry.find({ userId: req.user.id, 
       date: { $gte: monthStart, $lte: monthEnd },
     });
 
-    const monthlyRate = await MonthlyRate.findOne({ month: monthNumber, year: yearNumber });
+    const monthlyRate = await MonthlyRate.findOne({ userId: req.user.id, month: monthNumber, year: yearNumber });
 
     const cowMilkTotal = milkEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0), 0);
     const buffaloMilkTotal = milkEntries.reduce((sum, item) => sum + Number(item.buffaloTotal || 0), 0);
@@ -108,8 +108,8 @@ const createMonthlyRate = async (req, res, next) => {
     const { month, year, cowRate, buffaloRate } = req.body;
 
     const rate = await MonthlyRate.findOneAndUpdate(
-      { month, year },
-      { month, year, cowRate, buffaloRate },
+      { userId: req.user.id, month, year },
+      { userId: req.user.id, month, year, cowRate, buffaloRate },
       { upsert: true, new: true, runValidators: true },
     );
 
@@ -121,7 +121,7 @@ const createMonthlyRate = async (req, res, next) => {
 
 const getMonthlyRates = async (req, res, next) => {
   try {
-    const rates = await MonthlyRate.find().sort({ year: -1, month: -1 });
+    const rates = await MonthlyRate.find({ userId: req.user.id }).sort({ year: -1, month: -1 });
     res.json(rates);
   } catch (error) {
     next(error);

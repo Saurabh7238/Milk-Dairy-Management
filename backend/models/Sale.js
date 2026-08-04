@@ -1,11 +1,20 @@
 const mongoose = require('mongoose');
 
-const curdEntrySchema = new mongoose.Schema(
+const saleSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Buyer',
+      required: true,
+    },
     date: {
       type: Date,
       required: true,
-      unique: true,
     },
     quantity: {
       type: Number,
@@ -21,11 +30,6 @@ const curdEntrySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
     remarks: {
       type: String,
       default: '',
@@ -34,4 +38,4 @@ const curdEntrySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model('CurdEntry', curdEntrySchema);
+module.exports = mongoose.model('Sale', saleSchema);
