@@ -11,9 +11,9 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 export default function DashboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
-    const [buyers, setBuyers] = useState([]);
-    const [selectedBuyer, setSelectedBuyer] = useState('');
-    const [buyerSummary, setBuyerSummary] = useState(null);
+  const [buyers, setBuyers] = useState([]);
+  const [selectedBuyer, setSelectedBuyer] = useState('');
+  const [buyerSummary, setBuyerSummary] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -37,8 +37,13 @@ export default function DashboardPage() {
         return;
       }
       try {
-        const { data } = await api.get(`/sales-summary?buyerId=${selectedBuyer}`);
-        setBuyerSummary(data);
+        const { data } = await api.get(`/milk?buyerId=${selectedBuyer}`);
+        const today = dayjs().startOf('day');
+        const entries = (data || []).filter((entry) => dayjs(entry.date).isSame(today, 'day'));
+        const cowMilk = entries.reduce((sum, entry) => sum + Number(entry.cowMorning || 0) + Number(entry.cowEvening || 0), 0);
+        const buffaloMilk = entries.reduce((sum, entry) => sum + Number(entry.buffaloMorning || 0) + Number(entry.buffaloEvening || 0), 0);
+        const totalMilk = cowMilk + buffaloMilk;
+        setBuyerSummary({ cowMilk, buffaloMilk, totalMilk });
       } catch (error) {
         console.error(error);
       }
@@ -100,8 +105,8 @@ export default function DashboardPage() {
           </div>
         <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-2xl bg-emerald-50 p-4 text-sm">Date: {dayjs().format('DD MMM YYYY')}</div>
-            <div className="rounded-2xl bg-sky-50 p-4 text-sm">Cow Milk: {buyerSummary ? buyerSummary.totalQuantity : dashboard?.today?.cowMilk ?? 0} kg</div>
-            <div className="rounded-2xl bg-indigo-50 p-4 text-sm">Buffalo Milk: {buyerSummary ? buyerSummary.totalAmount : dashboard?.today?.buffaloMilk ?? 0} </div>
+            <div className="rounded-2xl bg-sky-50 p-4 text-sm">Cow Milk: {(buyerSummary ? buyerSummary.cowMilk : dashboard?.today?.cowMilk ?? 0).toFixed(2)} kg</div>
+            <div className="rounded-2xl bg-indigo-50 p-4 text-sm">Buffalo Milk: {(buyerSummary ? buyerSummary.buffaloMilk : dashboard?.today?.buffaloMilk ?? 0).toFixed(2)} kg</div>
         </div>
       </div>
     </div>

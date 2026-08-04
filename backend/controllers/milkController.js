@@ -22,16 +22,18 @@ const createMilkEntry = async (req, res) => {
     const entry = await MilkEntry.findOneAndUpdate(
       { date: entryDate.toDate(), userId: req.user.id, buyerId: req.body.buyerId },
       {
-        date: entryDate.toDate(),
-        userId: req.user.id,
-        buyerId: req.body.buyerId,
-        cowMorning: normalizedCowMorning,
-        cowEvening: normalizedCowEvening,
-        cowTotal: normalizedCowMorning + normalizedCowEvening,
-        buffaloMorning: normalizedBuffaloMorning,
-        buffaloEvening: normalizedBuffaloEvening,
-        buffaloTotal: normalizedBuffaloMorning + normalizedBuffaloEvening,
-        remarks,
+        $set: {
+          date: entryDate.toDate(),
+          userId: req.user.id,
+          buyerId: req.body.buyerId,
+          cowMorning: normalizedCowMorning,
+          cowEvening: normalizedCowEvening,
+          cowTotal: normalizedCowMorning + normalizedCowEvening,
+          buffaloMorning: normalizedBuffaloMorning,
+          buffaloEvening: normalizedBuffaloEvening,
+          buffaloTotal: normalizedBuffaloMorning + normalizedBuffaloEvening,
+          remarks,
+        },
       },
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );

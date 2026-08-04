@@ -19,7 +19,17 @@ const createCurdEntry = async (req, res) => {
 
     const entry = await CurdEntry.findOneAndUpdate(
       { date: entryDate.toDate(), userId: req.user.id, buyerId: req.body.buyerId },
-      { date: entryDate.toDate(), userId: req.user.id, buyerId: req.body.buyerId, quantity: normalizedQuantity, rate: normalizedRate, amount: normalizedQuantity * normalizedRate, remarks },
+      {
+        $set: {
+          date: entryDate.toDate(),
+          userId: req.user.id,
+          buyerId: req.body.buyerId,
+          quantity: normalizedQuantity,
+          rate: normalizedRate,
+          amount: normalizedQuantity * normalizedRate,
+          remarks,
+        },
+      },
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );
 
