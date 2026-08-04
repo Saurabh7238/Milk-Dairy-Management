@@ -46,8 +46,11 @@ const signupUser = async (req, res, next) => {
       return res.status(409).json({ message: 'Username already exists' });
     }
 
+    const totalUsers = await User.countDocuments();
+    const role = totalUsers === 0 ? 'admin' : 'user';
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, password: hashedPassword, name, phone, role: 'user' });
+    const user = await User.create({ username, password: hashedPassword, name, phone, role });
 
     res.status(201).json({
       token: generateToken(user._id),
