@@ -1,8 +1,6 @@
 const MilkEntry = require('../models/MilkEntry');
 const CurdEntry = require('../models/CurdEntry');
 const MonthlyRate = require('../models/MonthlyRate');
-const MilkEntry = require('../models/MilkEntry');
-const CurdEntry = require('../models/CurdEntry');
 const Buyer = require('../models/Buyer');
 const dayjs = require('dayjs');
 
