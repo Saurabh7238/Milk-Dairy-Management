@@ -17,19 +17,23 @@ function ensureDatabaseName(uri, defaultDb = 'milk-dairy') {
 const connectDB = async () => {
   try {
     let mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    let usingMemory = false;
 
     if (!mongoUri) {
+      if (isProduction) {
+        throw new Error('MONGO_URI is required in production');
+      }
       const memoryServer = await MongoMemoryServer.create();
       mongoUri = memoryServer.getUri();
+      usingMemory = true;
       console.log('Using in-memory MongoDB for local development');
     } else {
-      // Ensure a database name exists in the URI so deployments use the intended DB
       const normalized = ensureDatabaseName(mongoUri);
       if (normalized !== mongoUri) {
         console.log('Appended default DB name to MONGO_URI');
         mongoUri = normalized;
       }
-      // Masked log for diagnosis (don't print credentials)
       try {
         const masked = mongoUri.replace(/:\/\/.+@/, '://<credentials>@');
         console.log('Connecting to MongoDB at', masked);
@@ -42,6 +46,7 @@ const connectDB = async () => {
     console.log('MongoDB connected');
 
     await ensureMonthlyRateIndex();
+    return { usingMemory };
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
     process.exit(1);
