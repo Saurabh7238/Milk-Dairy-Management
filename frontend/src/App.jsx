@@ -1,0 +1,53 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Sidebar from './components/Sidebar';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import MilkEntryPage from './pages/MilkEntryPage';
+import CurdEntryPage from './pages/CurdEntryPage';
+import ReportPage from './pages/ReportPage';
+import CalendarPage from './pages/CalendarPage';
+import SettingsPage from './pages/SettingsPage';
+
+function AppShell() {
+  const { token } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#dcfce7,_#eff6ff)] p-4 text-slate-800 md:p-6">
+      {token ? (
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row">
+          <Sidebar />
+          <main className="flex-1 rounded-3xl border border-white/40 bg-white/30 p-4 shadow-xl backdrop-blur-xl md:p-6">
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/milk" element={<MilkEntryPage />} />
+              <Route path="/curd" element={<CurdEntryPage />} />
+              <Route path="/report" element={<ReportPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </div>
+      ) : (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      )}
+      <ToastContainer />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
