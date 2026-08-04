@@ -55,22 +55,25 @@ const connectDB = async () => {
 
 const ensureIndexes = async () => {
   try {
-    await ensureCollectionIndex('monthlyrates', 'month_1_year_1', { userId: 1, buyerId: 1, month: 1, year: 1 }, { unique: true }, 'monthly rates');
-    await ensureCollectionIndex('milkentries', 'date_1', { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'milk entries');
-    await ensureCollectionIndex('curdentries', 'date_1', { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'curd entries');
+    await ensureCollectionIndex('monthlyrates', ['month_1_year_1', 'userId_1_month_1_year_1'], { userId: 1, buyerId: 1, month: 1, year: 1 }, { unique: true }, 'monthly rates');
+    await ensureCollectionIndex('milkentries', ['date_1'], { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'milk entries');
+    await ensureCollectionIndex('curdentries', ['date_1'], { date: 1, userId: 1, buyerId: 1 }, { unique: true }, 'curd entries');
   } catch (err) {
     console.warn('Unable to ensure indexes:', err.message);
   }
 };
 
-const ensureCollectionIndex = async (collectionName, oldIndexName, newIndexSpec, newIndexOptions, label) => {
+const ensureCollectionIndex = async (collectionName, oldIndexNames, newIndexSpec, newIndexOptions, label) => {
   try {
     const collection = mongoose.connection.collection(collectionName);
     const indexes = await collection.indexes();
-    const oldIndex = indexes.find((idx) => idx.name === oldIndexName);
-    if (oldIndex) {
-      await collection.dropIndex(oldIndexName);
-      console.log(`Dropped old ${label} index ${oldIndexName}`);
+    const legacyNames = Array.isArray(oldIndexNames) ? oldIndexNames : [oldIndexNames];
+    for (const legacyName of legacyNames) {
+      const oldIndex = indexes.find((idx) => idx.name === legacyName);
+      if (oldIndex) {
+        await collection.dropIndex(legacyName);
+        console.log(`Dropped old ${label} index ${legacyName}`);
+      }
     }
     await collection.createIndex(newIndexSpec, newIndexOptions);
     console.log(`Ensured ${label} index ${JSON.stringify(newIndexSpec)}`);

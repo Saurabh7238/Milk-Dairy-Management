@@ -154,38 +154,56 @@ const getMonthlyReport = async (req, res, next) => {
 
 const createMonthlyRate = async (req, res, next) => {
   try {
-    const { month, year, cowRate, buffaloRate, buyerId } = req.body;
-    const filter = { userId: req.user.id, month: Number(month), year: Number(year) };
+    const month = Number(req.body.month);
+    const year = Number(req.body.year);
+    const cowRate = Number(req.body.cowRate ?? 0);
+    const buffaloRate = Number(req.body.buffaloRate ?? 0);
+    const buyerId = req.body.buyerId && mongoose.Types.ObjectId.isValid(req.body.buyerId)
+      ? new mongoose.Types.ObjectId(req.body.buyerId)
+      : null;
 
-    if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
-      filter.buyerId = new mongoose.Types.ObjectId(buyerId);
-    } else {
-      filter.buyerId = null;
+    const baseFilter = { userId: req.user.id, month, year };
+    const lookupFilter = buyerId
+      ? { $or: [
+          { ...baseFilter, buyerId },
+          { ...baseFilter, buyerId: null },
+          { ...baseFilter, buyerId: { $exists: false } },
+        ] }
+      : { ...baseFilter, $or: [{ buyerId: null }, { buyerId: { $exists: false } }] };
+
+    const existingRate = await MonthlyRate.findOne(lookupFilter);
+
+    if (existingRate) {
+      const updatedRate = await MonthlyRate.findOneAndUpdate(
+        { _id: existingRate._id },
+        { $set: { buyerId, month, year, cowRate, buffaloRate } },
+        { new: true, runValidators: true },
+      );
+      return res.status(200).json(updatedRate);
     }
 
-    const rate = await MonthlyRate.findOneAndUpdate(
-      filter,
-      { $set: { userId: req.user.id, buyerId: filter.buyerId, month: Number(month), year: Number(year), cowRate, buffaloRate } },
-      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
-    );
+    const createdRate = await MonthlyRate.create({
+      userId: req.user.id,
+      buyerId,
+      month,
+      year,
+      cowRate,
+      buffaloRate,
+    });
 
-    res.status(201).json(rate);
+    return res.status(201).json(createdRate);
   } catch (error) {
     if (error.code === 11000) {
       try {
-        const filter = { userId: req.user.id, month: Number(req.body.month), year: Number(req.body.year) };
-        if (req.body.buyerId && mongoose.Types.ObjectId.isValid(req.body.buyerId)) {
-          filter.buyerId = new mongoose.Types.ObjectId(req.body.buyerId);
-        } else {
-          filter.buyerId = null;
+        const fallbackRate = await MonthlyRate.findOne({ userId: req.user.id, month: Number(req.body.month), year: Number(req.body.year) });
+        if (fallbackRate) {
+          const updated = await MonthlyRate.findOneAndUpdate(
+            { _id: fallbackRate._id },
+            { $set: { cowRate: Number(req.body.cowRate ?? 0), buffaloRate: Number(req.body.buffaloRate ?? 0) } },
+            { new: true, runValidators: true },
+          );
+          return res.status(200).json(updated);
         }
-
-        const rate = await MonthlyRate.findOneAndUpdate(
-          filter,
-          { $set: { cowRate: req.body.cowRate, buffaloRate: req.body.buffaloRate } },
-          { new: true, runValidators: true },
-        );
-        if (rate) return res.status(200).json(rate);
       } catch (innerError) {
         return next(innerError);
       }
