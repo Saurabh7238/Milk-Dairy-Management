@@ -22,7 +22,11 @@ export default function DashboardPage() {
           api.get('/buyers'),
           api.get(`/dashboard${selectedBuyer ? `?buyerId=${selectedBuyer}` : ''}`),
         ]);
-        setBuyers(buyersRes.data || []);
+        const buyerList = buyersRes.data || [];
+        setBuyers(buyerList);
+        if (!selectedBuyer && buyerList.length === 1) {
+          setSelectedBuyer(buyerList[0]._id);
+        }
         setDashboard(dashRes.data);
       } catch (error) {
         console.error(error);

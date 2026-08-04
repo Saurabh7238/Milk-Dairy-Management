@@ -76,6 +76,12 @@ export default function ReportPage() {
   }, [month, year]);
 
   useEffect(() => {
+    if (buyers.length === 1 && !buyerId) {
+      setBuyerId(buyers[0]._id);
+    }
+  }, [buyers, buyerId]);
+
+  useEffect(() => {
     fetchReport();
     fetchRates();
   }, [month, year, buyerId, fromDate, toDate]);
