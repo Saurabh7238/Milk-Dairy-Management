@@ -117,7 +117,6 @@ export default function ReportPage() {
         ['Buffalo Milk Total', `${report?.buffaloMilkTotal ?? 0} kg`],
         ['Grand Milk Total', `${report?.grandMilkTotal ?? 0} kg`],
         ['Milk Income', `₹${report?.milkIncome ?? 0}`],
-        ['Curd Income', `₹${report?.curdIncome ?? 0}`],
         ['Final Income', `₹${report?.finalIncome ?? 0}`],
       ],
     });
@@ -127,7 +126,7 @@ export default function ReportPage() {
   const downloadExcel = () => {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet([
-      { Month: report?.monthName, CowMilkTotal: report?.cowMilkTotal, BuffaloMilkTotal: report?.buffaloMilkTotal, GrandMilkTotal: report?.grandMilkTotal, MilkIncome: report?.milkIncome, CurdIncome: report?.curdIncome, FinalIncome: report?.finalIncome },
+      { Month: report?.monthName, CowMilkTotal: report?.cowMilkTotal, BuffaloMilkTotal: report?.buffaloMilkTotal, GrandMilkTotal: report?.grandMilkTotal, MilkIncome: report?.milkIncome, FinalIncome: report?.finalIncome },
     ]);
     XLSX.utils.book_append_sheet(wb, ws, 'Report');
     XLSX.writeFile(wb, `report-${month}-${year}.xlsx`);
@@ -180,7 +179,6 @@ export default function ReportPage() {
             <div className="rounded-2xl bg-slate-50 p-4">Cow Price: ₹{report.cowRate || rates?.cowRate || 0}</div>
             <div className="rounded-2xl bg-slate-50 p-4">Buffalo Price: ₹{report.buffaloRate || rates?.buffaloRate || 0}</div>
             <div className="rounded-2xl bg-slate-50 p-4">Milk Income: ₹{report.milkIncome}</div>
-            <div className="rounded-2xl bg-slate-50 p-4">Curd Income: ₹{report.curdIncome}</div>
             <div className="rounded-2xl bg-slate-50 p-4">Final Income: ₹{report.finalIncome}</div>
           </div>
           <div className="mt-4 flex gap-3">

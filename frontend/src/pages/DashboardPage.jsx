@@ -64,7 +64,6 @@ export default function DashboardPage() {
         <StatCard title="Current Month Buffalo Rate" value={`₹${dashboard?.monthlyRates?.buffaloRate ?? 0} /kg`} icon={FaIndianRupeeSign} accent="from-sky-500 to-blue-600" />
         <StatCard title="Current Month Milk Income" value={`₹${dashboard?.month?.milkIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-sky-500 to-blue-600" />
         <StatCard title="Current Month Total Income" value={`₹${dashboard?.month?.totalIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-indigo-500 to-cyan-500" />
-        <StatCard title="Current Month Total Curd Income" value={`₹${dashboard?.month?.curdIncome ?? 0}`} icon={FaIndianRupeeSign} accent="from-violet-500 to-indigo-500" />
       </div>
       {dashboard?.monthlyRates == null && dashboard?.month?.totalMilk > 0 && (
         <div className="rounded-3xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-700">

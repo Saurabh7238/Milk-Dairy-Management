@@ -6,7 +6,6 @@ import Sidebar from './components/Sidebar';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import MilkEntryPage from './pages/MilkEntryPage';
-import CurdEntryPage from './pages/CurdEntryPage';
 import ReportPage from './pages/ReportPage';
 import CalendarPage from './pages/CalendarPage';
 import SettingsPage from './pages/SettingsPage';
@@ -27,7 +26,6 @@ function AppShell() {
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/milk" element={<MilkEntryPage />} />
-              <Route path="/curd" element={<CurdEntryPage />} />
               <Route path="/report" element={<ReportPage />} />
               <Route path="/buyers" element={<BuyersPage />} />
               <Route path="/sales" element={<SalesPage />} />

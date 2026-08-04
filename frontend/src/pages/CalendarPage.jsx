@@ -28,26 +28,18 @@ export default function CalendarPage() {
         const start = dayjs(`${year}-${String(month).padStart(2, '0')}-01`).startOf('month').startOf('week');
         const end = dayjs(`${year}-${String(month).padStart(2, '0')}-01`).endOf('month').endOf('week');
 
-        const [milkRes, curdRes] = await Promise.all([
-          api.get('/milk', { params: { from: start.toISOString(), to: end.toISOString() } }),
-          api.get('/curd', { params: { from: start.toISOString(), to: end.toISOString() } }),
-        ]);
+        const milkRes = await api.get('/milk', { params: { from: start.toISOString(), to: end.toISOString() } });
 
         const dayMap = {};
-        const addEntry = (entry, type) => {
+        const addEntry = (entry) => {
           const dateKey = dayjs(entry.date).startOf('day').format('YYYY-MM-DD');
-          const existing = dayMap[dateKey] || { date: dateKey, milk: 0, curd: 0, entries: [] };
-          if (type === 'milk') {
-            existing.milk += Number(entry.cowTotal || 0) + Number(entry.buffaloTotal || 0);
-          } else {
-            existing.curd += Number(entry.quantity || 0);
-          }
-          existing.entries.push({ type, ...entry });
+          const existing = dayMap[dateKey] || { date: dateKey, milk: 0, entries: [] };
+          existing.milk += Number(entry.cowTotal || 0) + Number(entry.buffaloTotal || 0);
+          existing.entries.push({ ...entry });
           dayMap[dateKey] = existing;
         };
 
-        (milkRes.data || []).forEach((entry) => addEntry(entry, 'milk'));
-        (curdRes.data || []).forEach((entry) => addEntry(entry, 'curd'));
+        (milkRes.data || []).forEach(addEntry);
 
         setEvents(dayMap);
       } catch (error) {
@@ -63,7 +55,7 @@ export default function CalendarPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="mb-1 text-xl font-bold text-slate-900">Calendar View</h2>
-            <p className="text-slate-700">Browse milk and curd entries by day.</p>
+            <p className="text-slate-700">Browse milk entries by day.</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="rounded-2xl border px-4 py-3">
@@ -91,12 +83,11 @@ export default function CalendarPage() {
               <div key={key} className={`min-h-[110px] rounded-3xl border p-3 text-left ${isCurrentMonth ? 'bg-white' : 'bg-slate-50 text-slate-400'} ${event ? 'border-sky-500 bg-sky-50' : 'border-slate-200'}`}>
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-semibold">{day.date()}</span>
-                  {event && <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-bold text-white">{event.milk > 0 ? 'M' : ''}{event.curd > 0 ? 'C' : ''}</span>}
+                  {event && <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-bold text-white">{event.milk > 0 ? 'M' : ''}</span>}
                 </div>
                 {event ? (
                   <div className="space-y-1 text-xs text-slate-700">
                     {event.milk > 0 && <div>Milk: {event.milk.toFixed(2)} kg</div>}
-                    {event.curd > 0 && <div>Curd: {event.curd.toFixed(2)} kg</div>}
                   </div>
                 ) : (
                   <div className="text-xs text-slate-400">No entries</div>

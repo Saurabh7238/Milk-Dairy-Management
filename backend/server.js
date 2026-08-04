@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 const seedAdmin = require('./config/seedAdmin');
 const authRoutes = require('./routes/authRoutes');
 const milkRoutes = require('./routes/milkRoutes');
-const curdRoutes = require('./routes/curdRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const buyerRoutes = require('./routes/buyerRoutes');
 const errorHandler = require('./middleware/errorHandler');
@@ -26,7 +25,6 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api', authRoutes);
 app.use('/api/milk', milkRoutes);
-app.use('/api/curd', curdRoutes);
 app.use('/api', reportRoutes);
 app.use('/api', buyerRoutes);
 

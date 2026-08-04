@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const MilkEntry = require('../models/MilkEntry');
-const CurdEntry = require('../models/CurdEntry');
 const MonthlyRate = require('../models/MonthlyRate');
 const Buyer = require('../models/Buyer');
 const dayjs = require('dayjs');
@@ -42,11 +41,6 @@ const getDashboard = async (req, res, next) => {
       ...dateFilter(monthStart, monthEnd),
     });
 
-    const monthlyCurd = await CurdEntry.find({
-      userId: req.user.id,
-      ...buyerFilter,
-      ...dateFilter(monthStart, monthEnd),
-    });
 
     const weeklyEntries = await MilkEntry.find({
       userId: req.user.id,
@@ -79,7 +73,6 @@ const getDashboard = async (req, res, next) => {
     const buffaloToday = todayEntries.reduce((sum, item) => sum + Number(item.buffaloTotal || 0), 0);
     const totalToday = cowToday + buffaloToday;
     const monthMilkTotal = monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) + Number(item.buffaloTotal || 0), 0);
-    const curdIncome = monthlyCurd.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
     const currentMonth = dayjs().month() + 1;
     const currentYear = dayjs().year();
@@ -103,7 +96,7 @@ const getDashboard = async (req, res, next) => {
     const milkIncome = rates
       ? monthlyEntries.reduce((sum, item) => sum + Number(item.cowTotal || 0) * cowRate + Number(item.buffaloTotal || 0) * buffaloRate, 0)
       : monthlyEntries.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const totalIncome = milkIncome + curdIncome;
+    const totalIncome = milkIncome;
 
     res.json({
       today: {
@@ -114,7 +107,6 @@ const getDashboard = async (req, res, next) => {
       month: {
         totalMilk: monthMilkTotal,
         milkIncome,
-        curdIncome,
         totalIncome,
       },
       monthlyRates: rates || null,
@@ -152,15 +144,12 @@ const getMonthlyReport = async (req, res, next) => {
     }
 
     const milkQuery = { userId: req.user.id, date: { $gte: rangeStart, $lte: rangeEnd } };
-    const curdQuery = { userId: req.user.id, date: { $gte: rangeStart, $lte: rangeEnd } };
 
     if (buyerId && mongoose.Types.ObjectId.isValid(buyerId)) {
       milkQuery.buyerId = new mongoose.Types.ObjectId(buyerId);
-      curdQuery.buyerId = new mongoose.Types.ObjectId(buyerId);
     }
 
     const milkEntries = await MilkEntry.find(milkQuery).sort({ date: 1 });
-    const curdEntries = await CurdEntry.find(curdQuery);
 
     const rateMonth = fromDate ? dayjs(fromDate).month() + 1 : monthNumber;
     const rateYear = fromDate ? dayjs(fromDate).year() : yearNumber;
@@ -188,8 +177,7 @@ const getMonthlyReport = async (req, res, next) => {
     const milkIncome = monthlyRate
       ? cowMilkTotal * cowRate + buffaloMilkTotal * buffaloRate
       : milkEntries.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const curdIncome = curdEntries.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const finalIncome = milkIncome + curdIncome;
+    const finalIncome = milkIncome;
 
     res.json({
       monthName: fromDate && toDate
@@ -201,7 +189,6 @@ const getMonthlyReport = async (req, res, next) => {
       cowRate,
       buffaloRate,
       milkIncome,
-      curdIncome,
       finalIncome,
       range: { fromDate: fromDate || null, toDate: toDate || null },
     });

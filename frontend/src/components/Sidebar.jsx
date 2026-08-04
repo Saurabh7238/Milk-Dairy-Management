@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 const links = [
   { to: '/', label: 'Dashboard', icon: FiHome },
   { to: '/milk', label: 'Milk Entry', icon: FiCoffee },
-  { to: '/curd', label: 'Curd Entry', icon: FiCoffee },
   { to: '/report', label: 'Monthly Report', icon: FiFileText },
   { to: '/buyers', label: 'Buyers', icon: FiUsers },
   { to: '/sales', label: 'Sell Milk', icon: FiDollarSign },
